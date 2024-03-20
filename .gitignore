@@ -1,0 +1,17 @@
+coverage/
+stats.json
+/deploy/build
+/deploy/netrc
+html_exports/
+/tmp
+/node_modules/
+.DS_Store
+
+yarn-error.log
+/src/config.js
+
+*.code-workspace
+
+# IntelliJ project files
+/.idea/
+*.iml
