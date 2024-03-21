@@ -11,7 +11,10 @@
     "lint:fix": "eslint src tst --ext .ts,.tsx --fix",
     "compile": "tsc -p tsconfig.json",
     "build": "npm run compile",
-    "release": "npm-run-all lint test compile"
+    "release": "npm-run-all lint test compile",
+    "kepler-build": "kepler build",
+    "kepler-simulator": "kepler device simulator start",
+    "kepler-start": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s"
   },
   "dependencies": {
     "@amzn/react-native-kepler": "~2.0.0",
