@@ -5,13 +5,17 @@
   "scripts": {
     "clean": "rm -rf node_modules buildinfo.json dist",
     "start": "npx react-native start",
+    "start-simulator": "",
     "test": "jest --colors ",
     "test:snapshot": "jest --colors --updateSnapshot",
     "lint": "eslint src tst --ext .ts,.tsx",
     "lint:fix": "eslint src tst --ext .ts,.tsx --fix",
     "compile": "tsc -p tsconfig.json",
     "build": "npm run compile",
-    "release": "npm-run-all lint test compile"
+    "release": "npm-run-all lint test compile",
+    "kepler-build": "kepler build",
+    "kepler-simulator": "kepler device simulator start",
+    "kepler-start": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s"
   },
   "dependencies": {
     "@amzn/react-native-kepler": "~2.0.0",
