@@ -1,23 +1,15 @@
-/build/
-/.idea/
-/.vscode/
-/node_modules/
-
-coverage/
-stats.json
-/deploy/build
-/deploy/netrc
-html_exports/
-/tmp
-/node_modules/
+*.iml
+*.swp
+.idea
 .DS_Store
+.vscode
+.tmp
+
+dist
+build
+node_modules
+buildinfo.json
+CMakeUserPresets.json
+npm-debug.log
 
 kepler-token-installer
-yarn-error.log
-/src/config.js
-
-*.code-workspace
-
-# IntelliJ project files
-/.idea/
-*.iml
