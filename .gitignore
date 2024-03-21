@@ -7,6 +7,7 @@ html_exports/
 /node_modules/
 .DS_Store
 
+kepler-token-installer
 yarn-error.log
 /src/config.js
 
