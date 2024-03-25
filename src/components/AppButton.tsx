@@ -5,9 +5,10 @@
  */
 
 import React, {useState} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import {StyleProp} from "react-native/Libraries/StyleSheet/StyleSheet";
 import {ViewStyle} from "react-native/Libraries/StyleSheet/StyleSheetTypes";
+import {TouchableHighlight} from "@amzn/react-native-kepler";
 
 interface AppButtonProps {
   label: string;
@@ -19,17 +20,16 @@ export const AppButton = ({label, onPress, style}: AppButtonProps) => {
   const [focused, setFocused] = useState(false);
 
   return (
-    <>
-      <TouchableOpacity
-        style={[styles.buttonContainer, focused && styles.focusedContainer, style]}
+      <TouchableHighlight
+        style={[styles.buttonContainer, style]}
+        underlayColor='white'
         onPress={() => onPress()}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}>
         <View style={styles.contentLayout}>
           <Text style={[styles.label, focused && styles.focusedLabel]}>{label}</Text>
         </View>
-      </TouchableOpacity>
-    </>
+      </TouchableHighlight>
   );
 };
 
@@ -43,9 +43,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#9EA3A3',
     opacity: 1
-  },
-  focusedContainer: {
-    backgroundColor: 'white'
   },
   contentLayout: {
     marginLeft: 'auto',
