@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2022 Amazon.com, Inc. or its affiliates.  All rights reserved.
- *
- * PROPRIETARY/CONFIDENTIAL.  USE IS SUBJECT TO LICENSE TERMS.
- */
 
 import React from 'react';
 import {ImageBackground, StyleSheet, Text, View} from 'react-native';
@@ -26,7 +21,7 @@ export const App = () => {
             experience.
           </Text>
         </View>
-        <AppButton onPress={playMainVideo} label={'Play'} style={styles.playButtonRow}/>
+        <AppButton onPress={playMainVideo} label={'Play'} style={styles.playButtonRow} defaultFocus={true}/>
         <AppButton onPress={() => {console.log('other pressed')}} label={'Other'} style={styles.playButtonRow}/>
       </View>
     </ImageBackground>

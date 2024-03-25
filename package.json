@@ -15,7 +15,8 @@
     "kepler-build-release": "kepler build -b Release",
     "kepler-run-release": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
     "kepler-simulator": "kepler device simulator start",
-    "kepler-fast-refresh": "kepler device start-port-forwarding --device Simulator -p 8081 --forward false"
+    "kepler-fast-refresh": "kepler device start-port-forwarding --device Simulator -p 8081 --forward false",
+    "kepler-log": "kepler device start-log-stream"
   },
   "dependencies": {
     "@amzn/react-native-kepler": "~2.0.0",
