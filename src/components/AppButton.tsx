@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2022 Amazon.com, Inc. or its affiliates.  All rights reserved.
- *
- * PROPRIETARY/CONFIDENTIAL.  USE IS SUBJECT TO LICENSE TERMS.
- */
 
 import React, {useCallback, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
@@ -21,11 +16,10 @@ export function AppButton({label, onPress, style, defaultFocus}: AppButtonProps)
   const [focused, setFocused] = useState<boolean | undefined>();
 
   const setDefaultFocus = useCallback((touchable: TouchableHighlight) => {
-    const handle = findNodeHandle(touchable);
-    if (defaultFocus && focused === undefined && touchable && handle && !FocusManager.getFocused()) {
+    if (defaultFocus && focused === undefined && touchable && !FocusManager.getFocused()) {
       // Only set the focus if not set yet. This way for competing defaultFocus=true props, the first one wins.
+      const handle = findNodeHandle(touchable);
       setFocused(true);
-      FocusManager.focus(null);
       FocusManager.focus(handle);
     }
   }, [defaultFocus, setFocused, focused]);
