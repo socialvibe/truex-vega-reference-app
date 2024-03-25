@@ -21,13 +21,9 @@ export function AppButton({label, onPress, style, defaultFocus}: AppButtonProps)
   const [focused, setFocused] = useState<boolean | undefined>();
 
   const setDefaultFocus = useCallback((touchable: TouchableHighlight) => {
-    if (!touchable) console.log('*** setDefaultFocus: NO touchable: ' + label)
-    else console.log('*** setDefaultFocus: HAS touchable: ' + label)
-
     const handle = findNodeHandle(touchable);
-    if (defaultFocus && focused === undefined && touchable && handle) {
+    if (defaultFocus && focused === undefined && touchable && handle && !FocusManager.getFocused()) {
       // Only set the focus if not set yet. This way for competing defaultFocus=true props, the first one wins.
-      console.log('*** setDefaultFocus: SET focus: ' + label);
       setFocused(true);
       FocusManager.focus(null);
       FocusManager.focus(handle);
@@ -35,19 +31,17 @@ export function AppButton({label, onPress, style, defaultFocus}: AppButtonProps)
   }, [defaultFocus, setFocused, focused]);
 
   return (
-    <View hasTVPreferredFocus={undefined}>
-      <TouchableHighlight
-        ref={setDefaultFocus}
-        style={[styles.buttonContainer, style]}
-        underlayColor='white'
-        onPress={() => onPress()}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}>
-        <View style={styles.contentLayout}>
-          <Text style={[styles.label, focused && styles.focusedLabel]}>{label}</Text>
-        </View>
-      </TouchableHighlight>
-    </View>
+    <TouchableHighlight
+      ref={setDefaultFocus}
+      style={[styles.buttonContainer, style]}
+      underlayColor='white'
+      onPress={() => onPress()}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}>
+      <View style={styles.contentLayout}>
+        <Text style={[styles.label, focused && styles.focusedLabel]}>{label}</Text>
+      </View>
+    </TouchableHighlight>
   );
 };
 
