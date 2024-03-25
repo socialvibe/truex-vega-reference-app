@@ -2,11 +2,11 @@
 import React from 'react';
 import {ImageBackground, StyleSheet, Text, View} from 'react-native';
 import {AppButton} from "./components/AppButton";
+import {Image} from "@amzn/react-native-kepler";
 
 export const App = () => {
   const playMainVideo = () => {
   };
-
   return (
     <ImageBackground
       source={require('./assets/background.png')}
@@ -22,7 +22,21 @@ export const App = () => {
           </Text>
         </View>
         <AppButton onPress={playMainVideo} label={'Play'} style={styles.playButtonRow} defaultFocus={true}/>
-        <AppButton onPress={() => {console.log('other pressed')}} label={'Other'} style={styles.playButtonRow}/>
+        <View style={styles.movieTray}>
+          <View style={[styles.tile, styles.selectedTile]}>
+            <Image style={styles.selectedTile} 
+              source={{uri: 'https://stash.truex.com/reference-apps/scratch/truex_cover_placeholder_spaceneedle.png'}}/>
+          </View>
+          {(() => {
+            const tiles = [];
+            for(var i = 0; i < 6; i++) {
+              tiles.push((
+                <View key={i} style={styles.tile}/>
+              ));
+            }
+            return tiles;
+          })()}
+        </View>
       </View>
     </ImageBackground>
   );
@@ -61,5 +75,21 @@ const styles = StyleSheet.create({
   },
   playButtonRow: {
     marginTop: 20,
+  },
+  movieTray: {
+    marginTop: 80,
+    flexDirection: 'row'
+  },
+  tile: {
+    verticalAlign: 'top',
+    backgroundColor: '#6B6B6B',
+    marginLeft: 50,
+    width: 220,
+    height: 331,
+  },
+  selectedTile: {
+    width: 375,
+    height: 526,
+    marginLeft: 0
   },
 });
