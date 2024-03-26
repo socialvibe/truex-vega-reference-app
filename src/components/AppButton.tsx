@@ -1,4 +1,3 @@
-
 import React, {useCallback, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {StyleProp} from "react-native/Libraries/StyleSheet/StyleSheet";
