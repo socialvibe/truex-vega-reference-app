@@ -13,6 +13,9 @@ export const App = () => {
       style={styles.background}>
       <View style={styles.backgroundOverlay}/>
       <View style={styles.container}>
+        <View>
+          <Image source={require('./assets/truex-vision-logo.png')}/>
+        </View>
         <View style={styles.headerContainer}>
           <Text style={styles.headerText}>The true[X] Employee Experience</Text>
           <Text style={styles.subHeaderText}>
@@ -24,7 +27,7 @@ export const App = () => {
         <AppButton onPress={playMainVideo} label={'Play'} style={styles.playButtonRow} defaultFocus={true}/>
         <View style={styles.movieTray}>
           <View style={[styles.tile, styles.selectedTile]}>
-            <Image style={styles.selectedTile} 
+            <Image style={styles.selectedTile}
               source={{uri: 'https://stash.truex.com/reference-apps/scratch/truex_cover_placeholder_spaceneedle.png'}}/>
           </View>
           {(() => {
@@ -56,12 +59,13 @@ const styles = StyleSheet.create({
   },
   container: {
     position: 'absolute',
-    marginTop: 146,
+    marginTop: 20,
     marginLeft: 60,
     flex: 6,
     flexDirection: 'column',
   },
   headerContainer: {
+    marginTop: 40,
     width: '90%',
   },
   headerText: {
