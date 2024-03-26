@@ -13,13 +13,14 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 const styles = StyleSheet.create({
   playbackPage: {
     width: '100%',
+    height: '100%',
     backgroundColor: 'black'
   },
   text: {
     fontSize: 30,
     color: 'white',
-    marginLeft: 40,
-    marginTop: 40
+    marginLeft: 200,
+    marginTop: 200
   }
 });
 
