@@ -1,14 +1,8 @@
-import React from "react";
-import {useRef, useState, useEffect} from 'react';
-import {useWindowDimensions, StyleSheet, Text, View} from 'react-native';
+import React, {useEffect, useRef} from "react";
+import {StyleSheet, useWindowDimensions, View} from 'react-native';
 import {StackScreenProps} from "@amzn/react-navigation__stack";
 
-import {
-  Video,
-  VideoPlayer,
-  KeplerVideoSurfaceView,
-  KeplerCaptionsView
-} from "@amzn/react-native-w3cmedia";
+import {KeplerVideoSurfaceView, VideoPlayer} from "@amzn/react-native-w3cmedia";
 
 const content =
   {
@@ -22,72 +16,57 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   // Get the full screen resolution
   const {width: deviceWidth, height: deviceHeight} = useWindowDimensions();
 
-  const videoRef = useRef<VideoPlayer | null>(null);
+  const videoRef = useRef<VideoPlayer|undefined>();
+  const surfaceRef = useRef<string|undefined>();
 
-  // Start video playback when the video is mounted to render tree.
-  const onVideoMounted = () => {
-    if (videoRef.current !== null) {
-      videoRef.current.src = content.uri; // set HTMLMediaElement's src attribute
-    }
+  const showVideo = () => {
+    if (!surfaceRef.current) return;
+    if (!videoRef.current) return;
+    if (!videoRef.current.src) return;
+    videoRef.current.setSurfaceHandle(surfaceRef.current);
+    videoRef.current.play();
+    console.log('playback: video started');
   }
 
   useEffect(() => {
-    initializingPreBuffering();
+    videoRef.current = new VideoPlayer();
+    videoRef.current.autoplay = false;
+    videoRef.current.addEventListener("ended", destroyVideoPlayer);
+    console.log('playback: video created');
+
+    videoRef.current.initialize().then(() => {
+      if (!videoRef.current) return;
+      videoRef.current.src = content.uri; // set HTMLMediaElement's src attribute
+      console.log('playback: video initialized: ' + content.uri);
+      showVideo();
+    });
   }, []);
 
 
-  const onEnded = () => {
-    (videoRef.current as VideoPlayer).deinitialize().then(() => {
-      removeEventListeners();
-      onVideoUnMounted();
-    });
-  }
-
-  const initializingPreBuffering = () => {
-    videoRef.current = new VideoPlayer();
-    videoRef.current.initialize().then(() => {
-      setUpEventListeners();
-      videoRef.current!.autoplay = true;
-      onVideoMounted();
-    });
-  }
-
-  const setUpEventListeners = (): void => {
-    videoRef.current?.addEventListener("ended", onEnded);
-  }
-
-  const removeEventListeners = (): void => {
-    videoRef.current?.removeEventListener("ended", onEnded);
-  }
-
-  const onSurfaceViewCreated = (_surfaceHandle: string): void => {
+  const destroyVideoPlayer = () => {
     if (!videoRef.current) return;
-    videoRef.current.setSurfaceHandle(_surfaceHandle);
-    videoRef.current.play();
+    videoRef.current.removeEventListener("ended", destroyVideoPlayer);
+    videoRef.current.deinitialize();
+    videoRef.current = undefined;
+    console.log('playback: video destroyed');
   }
 
-  const onSurfaceViewDestroyed = (_surfaceHandle: string): void => {
+  const onSurfaceViewCreated = (surfaceHandle: string): void => {
+    surfaceRef.current = surfaceHandle;
+    console.log('playback: surface created');
+    showVideo();
+  }
+
+  const onSurfaceViewDestroyed = (surfaceHandle: string): void => {
     if (!videoRef.current) return;
-    videoRef.current.clearSurfaceHandle(_surfaceHandle);
-    videoRef.current.pause();
-  }
-
-  const onCaptionViewCreated = (captionsHandle: string): void => {
-    (videoRef.current as VideoPlayer).setCaptionViewHandle(captionsHandle);
-  }
-
-  const onVideoUnMounted = (): void => {
-    videoRef.current = null;
+    videoRef.current.clearSurfaceHandle(surfaceHandle);
+    destroyVideoPlayer();
   }
 
   return (
     <View style={styles.playbackPage}>
       <KeplerVideoSurfaceView style={styles.videoView}
         onSurfaceViewCreated={onSurfaceViewCreated} onSurfaceViewDestroyed={onSurfaceViewDestroyed}/>
-      <KeplerCaptionsView
-        onCaptionViewCreated={onCaptionViewCreated}
-        style={styles.captionsView}
-      />
     </View>
   );
 }
@@ -106,25 +85,13 @@ const styles = StyleSheet.create({
     marginTop: 200
   },
   videoView: {
-    //zIndex: 0,
     backgroundColor: 'transparent',
-    width: '100%',
-    height: '100%',
     top: 0,
     left: 0,
     position: 'absolute',
+    width: '100%',
+    height: '100%',
   },
-  captionsView: {
-    width: '100%',
-    height: '100%',
-    top: 0,
-    left: 0,
-    position: 'absolute',
-    backgroundColor: 'transparent',
-    flexDirection: 'column',
-    alignItems: 'center',
-    zIndex: 2
-  }
 });
 
 export default PlaybackScreen;
