@@ -22,7 +22,7 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   // Get the full screen resolution
   const {width: deviceWidth, height: deviceHeight} = useWindowDimensions();
 
-  const videoRef = useRef<Video | VideoPlayer | null>(null);
+  const videoRef = useRef<VideoPlayer | null>(null);
 
   // Start video playback when the video is mounted to render tree.
   const onVideoMounted = () => {
@@ -61,12 +61,15 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   }
 
   const onSurfaceViewCreated = (_surfaceHandle: string): void => {
-    (videoRef.current as VideoPlayer).setSurfaceHandle(_surfaceHandle);
-    videoRef.current?.play();
+    if (!videoRef.current) return;
+    videoRef.current.setSurfaceHandle(_surfaceHandle);
+    videoRef.current.play();
   }
 
   const onSurfaceViewDestroyed = (_surfaceHandle: string): void => {
-    (videoRef.current as VideoPlayer).clearSurfaceHandle(_surfaceHandle);
+    if (!videoRef.current) return;
+    videoRef.current.clearSurfaceHandle(_surfaceHandle);
+    videoRef.current.pause();
   }
 
   const onCaptionViewCreated = (captionsHandle: string): void => {
@@ -79,21 +82,11 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
 
   return (
     <View style={styles.playbackPage}>
-      <KeplerVideoSurfaceView style={{zIndex: 0}}
+      <KeplerVideoSurfaceView style={styles.videoView}
         onSurfaceViewCreated={onSurfaceViewCreated} onSurfaceViewDestroyed={onSurfaceViewDestroyed}/>
       <KeplerCaptionsView
         onCaptionViewCreated={onCaptionViewCreated}
-        style={{
-          width: '100%',
-          height: '100%',
-          top: 0,
-          left: 0,
-          position: 'absolute',
-          backgroundColor: 'transparent',
-          flexDirection: 'column',
-          alignItems: 'center',
-          zIndex: 2
-        }}
+        style={styles.captionsView}
       />
     </View>
   );
@@ -111,6 +104,26 @@ const styles = StyleSheet.create({
     color: 'white',
     marginLeft: 200,
     marginTop: 200
+  },
+  videoView: {
+    //zIndex: 0,
+    backgroundColor: 'transparent',
+    width: '100%',
+    height: '100%',
+    top: 0,
+    left: 0,
+    position: 'absolute',
+  },
+  captionsView: {
+    width: '100%',
+    height: '100%',
+    top: 0,
+    left: 0,
+    position: 'absolute',
+    backgroundColor: 'transparent',
+    flexDirection: 'column',
+    alignItems: 'center',
+    zIndex: 2
   }
 });
 
