@@ -30,7 +30,9 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
 
   const stopVideo = () => {
     if (!videoRef.current) return;
-    videoRef.current.deinitialize();
+    //if (surfaceRef.current) videoRef.current.clearSurfaceHandle(surfaceRef.current);
+    videoRef.current.pause();
+    //videoRef.current.deinitialize();
     videoRef.current = undefined;
     console.log('*** video stopped');
   }
@@ -39,7 +41,7 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
     console.log("*** playback page mounted");
 
     if (videoRef.current) {
-      console.log('*** video already present');
+      console.log('*** stopping previous video');
       stopVideo();
     }
 
@@ -63,15 +65,9 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
     startVideo();
   }
 
-  const onSurfaceViewDestroyed = (surfaceHandle: string): void => {
-    if (!videoRef.current) return;
-    videoRef.current.clearSurfaceHandle(surfaceHandle);
-    stopVideo();
-  }
-
   return (
     <View style={styles.playbackPage}>
-      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} onSurfaceViewDestroyed={onSurfaceViewDestroyed}/>
+      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated}/>
     </View>
   );
 }
