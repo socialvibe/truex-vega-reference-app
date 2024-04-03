@@ -1,6 +1,6 @@
 import {ImageBackground, StyleSheet, Text, View} from "react-native";
 import {Image} from "@amzn/react-native-kepler";
-import React from "react";
+import React, {useEffect} from "react";
 import {AppButton} from "./components/AppButton";
 import {StackScreenProps} from "@amzn/react-navigation__stack";
 
@@ -8,6 +8,13 @@ export function HomeScreen({ navigation, route }: StackScreenProps<any>) {
   function renderRepeat(count: number, callback: (index: number) => React.ReactNode) {
     return Array(count).fill(null).map((value, index) => callback(index));
   }
+
+  useEffect(() => {
+    console.log("*** home page mounted");
+    return () => {
+      console.log("*** home page unmounted");
+    };
+  }, []);
 
   return (
     <ImageBackground

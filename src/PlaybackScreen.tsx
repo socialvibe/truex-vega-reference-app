@@ -19,54 +19,59 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   const videoRef = useRef<VideoPlayer|undefined>();
   const surfaceRef = useRef<string|undefined>();
 
-  const showVideo = () => {
+  const startVideo = () => {
     if (!surfaceRef.current) return;
     if (!videoRef.current) return;
     if (!videoRef.current.src) return;
     videoRef.current.setSurfaceHandle(surfaceRef.current);
     videoRef.current.play();
-    console.log('playback: video started');
+    console.log('*** video started');
+  }
+
+  const stopVideo = () => {
+    if (!videoRef.current) return;
+    videoRef.current.deinitialize();
+    videoRef.current = undefined;
+    console.log('*** video stopped');
   }
 
   useEffect(() => {
+    console.log("*** playback page mounted");
+
+    if (videoRef.current) {
+      console.log('*** video already present');
+      stopVideo();
+    }
+
     videoRef.current = new VideoPlayer();
     videoRef.current.autoplay = false;
-    videoRef.current.addEventListener("ended", destroyVideoPlayer);
-    console.log('playback: video created');
-
     videoRef.current.initialize().then(() => {
       if (!videoRef.current) return;
-      videoRef.current.src = content.uri; // set HTMLMediaElement's src attribute
-      console.log('playback: video initialized: ' + content.uri);
-      showVideo();
-    });
+      console.log('*** video initialized');
+      videoRef.current.src = content.uri;
+      startVideo();
+    })
+
+    return () => {
+      console.log('*** playback page unmounted');
+      stopVideo();
+    };
   }, []);
-
-
-  const destroyVideoPlayer = () => {
-    if (!videoRef.current) return;
-    videoRef.current.removeEventListener("ended", destroyVideoPlayer);
-    videoRef.current.deinitialize();
-    videoRef.current = undefined;
-    console.log('playback: video destroyed');
-  }
 
   const onSurfaceViewCreated = (surfaceHandle: string): void => {
     surfaceRef.current = surfaceHandle;
-    console.log('playback: surface created');
-    showVideo();
+    startVideo();
   }
 
   const onSurfaceViewDestroyed = (surfaceHandle: string): void => {
     if (!videoRef.current) return;
     videoRef.current.clearSurfaceHandle(surfaceHandle);
-    destroyVideoPlayer();
+    stopVideo();
   }
 
   return (
     <View style={styles.playbackPage}>
-      <KeplerVideoSurfaceView style={styles.videoView}
-        onSurfaceViewCreated={onSurfaceViewCreated} onSurfaceViewDestroyed={onSurfaceViewDestroyed}/>
+      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} onSurfaceViewDestroyed={onSurfaceViewDestroyed}/>
     </View>
   );
 }
