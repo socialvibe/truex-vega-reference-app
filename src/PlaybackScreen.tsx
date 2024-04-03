@@ -3,6 +3,7 @@ import {StyleSheet, useWindowDimensions, View} from 'react-native';
 import {StackScreenProps} from "@amzn/react-navigation__stack";
 
 import {KeplerVideoSurfaceView, VideoPlayer} from "@amzn/react-native-w3cmedia";
+import {Text} from "@amzn/react-native-kepler";
 
 const content =
   {
@@ -21,8 +22,7 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
 
   const startVideo = () => {
     if (!surfaceRef.current) return;
-    if (!videoRef.current) return;
-    if (!videoRef.current.src) return;
+    if (!videoRef.current?.src) return;
     videoRef.current.setSurfaceHandle(surfaceRef.current);
     videoRef.current.play();
     console.log('*** video started');
@@ -30,10 +30,20 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
 
   const stopVideo = () => {
     if (!videoRef.current) return;
-    //if (surfaceRef.current) videoRef.current.clearSurfaceHandle(surfaceRef.current);
-    videoRef.current.pause();
-    //videoRef.current.deinitialize();
-    videoRef.current = undefined;
+    console.log('*** stopping video');
+    const player = videoRef.current;
+    player.pause();
+    // if (surfaceRef.current) {
+    //   console.log('*** player surface clearing ' + surfaceRef.current);
+    //   player.clearSurfaceHandle(surfaceRef.current);
+    //   console.log('*** player surface cleared');
+    // } else {
+    //   console.log('*** no surface handle to clear!');
+    // }
+    player.deinitialize().then(() => {
+      console.log('*** video deinitialized');
+      videoRef.current = undefined;
+    });
     console.log('*** video stopped');
   }
 
@@ -56,18 +66,32 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
 
     return () => {
       console.log('*** playback page unmounted');
+      // setTimeout(() => {
+      //   console.log('*** stopping later');
+      //   stopVideo();
+      // }, 1);
+      // videoRef.current?.pause();
       stopVideo();
     };
   }, []);
 
   const onSurfaceViewCreated = (surfaceHandle: string): void => {
+    console.log('*** video surface created: ' + surfaceHandle);
     surfaceRef.current = surfaceHandle;
     startVideo();
   }
 
+  const onSurfaceViewDestroyed = (surfaceHandle: string): void => {
+    console.log(`*** video surface destroyed: ${surfaceHandle}, has video: ${!!videoRef.current}`);
+    if (!videoRef.current) return;
+    videoRef.current?.clearSurfaceHandle(surfaceHandle);
+    stopVideo();
+  }
+
   return (
     <View style={styles.playbackPage}>
-      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated}/>
+      {/*<Text style={styles.text}>This is the playback screen.</Text>*/}
+      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} onSurfaceViewDestroyed={onSurfaceViewDestroyed} />
     </View>
   );
 }

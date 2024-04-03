@@ -5,7 +5,7 @@ import {AppButton} from "./components/AppButton";
 import {StackScreenProps} from "@amzn/react-navigation__stack";
 
 export function HomeScreen({ navigation, route }: StackScreenProps<any>) {
-  function renderRepeat(count: number, callback: (index: number) => React.ReactNode) {
+  function repeatRender(count: number, callback: (index: number) => React.ReactNode) {
     return Array(count).fill(null).map((value, index) => callback(index));
   }
 
@@ -39,7 +39,7 @@ export function HomeScreen({ navigation, route }: StackScreenProps<any>) {
             <Image style={styles.selectedTile}
                    source={{uri: 'https://stash.truex.com/reference-apps/scratch/truex_cover_placeholder_spaceneedle.png'}}/>
           </View>
-          {renderRepeat(6, index => <View key={index} style={styles.tile}/>)}
+          {repeatRender(6, index => <View key={index} style={styles.tile}/>)}
         </View>
       </View>
     </ImageBackground>
