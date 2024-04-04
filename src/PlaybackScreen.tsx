@@ -17,16 +17,14 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   // Get the full screen resolution
   const {width: deviceWidth, height: deviceHeight} = useWindowDimensions();
 
-  const videoRef = useRef(new VideoPlayer());
+  const videoRef = useRef<VideoPlayer | undefined>(new VideoPlayer());
   const surfaceRef = useRef<string|undefined>();
 
   const startVideo = () => {
-    console.log('*** attempting video start');
     const video = videoRef.current;
+    if (!video) return;
     if (!surfaceRef.current) return;
     if (!video.src) return;
-    console.log(`*** video starting: ${surfaceRef.current}: ${video.src}`);
-    //video.currentTime = 0;
     video.setSurfaceHandle(surfaceRef.current);
 
     // Starting playback "later" seems to help.
@@ -39,30 +37,31 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
           console.error(`*** video play error: ${err}`);
         });
     }, 5);
-    console.log('*** video started');
   }
 
   const stopVideo = () => {
-    console.log('*** stopping video');
     const video = videoRef.current;
+    if (!video) return;
     video.pause();
     video.clearSurfaceHandle('');
-    //video.src = ''; // try to unload the video
     surfaceRef.current = undefined;
+    videoRef.current = undefined;
     console.log('*** video stopped');
   }
 
   const navigateBack = useCallback(() => {
-    console.log('*** navigating back');
     stopVideo();
     navigation.goBack();
-    console.log('*** did go back');
     return true;
   }, []);
 
   useEffect(() => {
     const video = videoRef.current;
-    console.log(`*** playback page mounted: ${video.src}`);
+    if (!video) {
+      console.error('*** video was not created!');
+      return;
+    }
+    console.log('*** playback page mounted');
 
     if (Platform.isTV) {
       BackHandler.addEventListener('hardwareBackPress', navigateBack);
@@ -71,15 +70,13 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
     video.initialize().then(() => {
       console.log('*** video initialized');
       video.autoplay = false;
-      if (video.src != content.uri) {
-        video.src = content.uri;
-        console.log('*** video src: ' + video.src);
-      } else {
-        video.currentTime = 0;
-      }
+
+      video.src = content.uri;
+      console.log('*** video src: ' + video.src);
+      video.autoplay = false;
       video.pause();
       video.load();
-      startVideo();
+      setTimeout(() => startVideo(), 100);
     });
 
     return () => {
@@ -93,7 +90,7 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   const onSurfaceViewCreated = (surfaceHandle: string): void => {
     console.log('*** video surface created: ' + surfaceHandle);
     surfaceRef.current = surfaceHandle;
-    startVideo();
+    setTimeout(() => startVideo(), 100);
   }
 
   return (
