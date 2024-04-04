@@ -15,3 +15,13 @@ id = "com.truex.keplerrefapp"
 id = "com.truex.keplerrefapp.main"
 runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
 launch-type = "singleton"
+
+[[wants.service]]
+id = "com.amazon.mediametrics.service" # Required for metrics service
+
+[[wants.service]]
+id = "com.amazon.media.server"
+
+[[wants.service]]
+id = "com.amazon.media.playersession.service"
+
