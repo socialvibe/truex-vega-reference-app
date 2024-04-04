@@ -13,64 +13,64 @@ const content =
     drm_license_uri: "", // DRM License acquisition server URL : needed only if the content is DRM protected
   };
 
+// Use a singleton player for the app, to work around video recreation issues.
+const videoPlayer = new VideoPlayer();
+videoPlayer.autoplay = false;
+var videoPlayerInitialized = false;
+
 export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   // Get the full screen resolution
   const {width: deviceWidth, height: deviceHeight} = useWindowDimensions();
 
-  const videoRef = useRef<VideoPlayer|undefined>();
   const surfaceRef = useRef<string|undefined>();
 
   const startVideo = () => {
     if (!surfaceRef.current) return;
-    if (!videoRef.current?.src) return;
-    videoRef.current.setSurfaceHandle(surfaceRef.current);
-    videoRef.current.play();
+    if (!videoPlayer.src) return;
+    console.log(`*** video starting: ${surfaceRef.current}: ${videoPlayer.src}`);
+    videoPlayer.setSurfaceHandle(surfaceRef.current);
+    videoPlayer.play()
+      .then(() => {
+        console.log('*** video playing');
+      })
+      .catch(err => {
+        console.error(`*** video play error: ${err}`);
+      });
     console.log('*** video started');
   }
 
   const stopVideo = () => {
-    if (!videoRef.current) return;
     console.log('*** stopping video');
-    const player = videoRef.current;
-    player.pause();
-    // if (surfaceRef.current) {
-    //   console.log('*** player surface clearing ' + surfaceRef.current);
-    //   player.clearSurfaceHandle(surfaceRef.current);
-    //   console.log('*** player surface cleared');
-    // } else {
-    //   console.log('*** no surface handle to clear!');
-    // }
-    player.deinitialize().then(() => {
-      console.log('*** video deinitialized');
-      videoRef.current = undefined;
-    });
+    videoPlayer.pause();
+    if (surfaceRef.current) {
+      videoPlayer.clearSurfaceHandle(surfaceRef.current);
+      console.log('*** player surface cleared: ' + surfaceRef.current);
+    } else {
+      console.log('*** no surface handle to clear!');
+    }
+    //videoPlayer.src = ''; // try to unload the video
     console.log('*** video stopped');
   }
 
   useEffect(() => {
-    console.log("*** playback page mounted");
+    console.log(`*** playback page mounted: ${videoPlayer.src}`);
+    if (!videoPlayerInitialized) {
+      // We only need to initialize the player instance the first time.
+      console.log('*** video initializing');
+      videoPlayer.initialize().then(() => {
+        console.log('*** video initialized');
+        videoPlayerInitialized = true;
+        videoPlayer.src = content.uri;
+        startVideo();
+      });
 
-    if (videoRef.current) {
-      console.log('*** stopping previous video');
-      stopVideo();
-    }
-
-    videoRef.current = new VideoPlayer();
-    videoRef.current.autoplay = false;
-    videoRef.current.initialize().then(() => {
-      if (!videoRef.current) return;
-      console.log('*** video initialized');
-      videoRef.current.src = content.uri;
+    } else {
+      //videoPlayer.src = content.uri;
       startVideo();
-    })
+    }
 
     return () => {
       console.log('*** playback page unmounted');
-      // setTimeout(() => {
-      //   console.log('*** stopping later');
-      //   stopVideo();
-      // }, 1);
-      // videoRef.current?.pause();
       stopVideo();
     };
   }, []);
@@ -81,17 +81,16 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
     startVideo();
   }
 
-  const onSurfaceViewDestroyed = (surfaceHandle: string): void => {
-    console.log(`*** video surface destroyed: ${surfaceHandle}, has video: ${!!videoRef.current}`);
-    if (!videoRef.current) return;
-    videoRef.current?.clearSurfaceHandle(surfaceHandle);
-    stopVideo();
-  }
+  // const onSurfaceViewDestroyed = (surfaceHandle: string): void => {
+  //   console.log(`*** video surface destroyed: ${surfaceHandle}, has video: ${!!videoRef.current}`);
+  //   if (!videoRef.current) return;
+  //   videoRef.current?.clearSurfaceHandle(surfaceHandle);
+  //   stopVideo();
+  // }
 
   return (
     <View style={styles.playbackPage}>
-      {/*<Text style={styles.text}>This is the playback screen.</Text>*/}
-      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} onSurfaceViewDestroyed={onSurfaceViewDestroyed} />
+      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated}/>
     </View>
   );
 }
