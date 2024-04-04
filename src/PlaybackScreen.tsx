@@ -13,38 +13,42 @@ const content =
     drm_license_uri: "", // DRM License acquisition server URL : needed only if the content is DRM protected
   };
 
-// Use a singleton player for the app, to work around video recreation issues.
-const videoPlayer = new VideoPlayer();
-
 export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   // Get the full screen resolution
   const {width: deviceWidth, height: deviceHeight} = useWindowDimensions();
 
+  const videoRef = useRef(new VideoPlayer());
   const surfaceRef = useRef<string|undefined>();
 
   const startVideo = () => {
     console.log('*** attempting video start');
+    const video = videoRef.current;
     if (!surfaceRef.current) return;
-    if (!videoPlayer.src) return;
-    console.log(`*** video starting: ${surfaceRef.current}: ${videoPlayer.src}`);
-    videoPlayer.setSurfaceHandle(surfaceRef.current);
-    //videoPlayer.currentTime = 0;
-    videoPlayer.play()
-      .then(() => {
-        console.log('*** video playing');
-      })
-      .catch(err => {
-        console.error(`*** video play error: ${err}`);
-      });
+    if (!video.src) return;
+    console.log(`*** video starting: ${surfaceRef.current}: ${video.src}`);
+    //video.currentTime = 0;
+    video.setSurfaceHandle(surfaceRef.current);
+
+    // Starting playback "later" seems to help.
+    setTimeout(() => {
+      video.play()
+        .then(() => {
+          console.log('*** video playing');
+        })
+        .catch(err => {
+          console.error(`*** video play error: ${err}`);
+        });
+    }, 5);
     console.log('*** video started');
   }
 
   const stopVideo = () => {
     console.log('*** stopping video');
-    videoPlayer.pause();
-    videoPlayer.clearSurfaceHandle('');
+    const video = videoRef.current;
+    video.pause();
+    video.clearSurfaceHandle('');
+    //video.src = ''; // try to unload the video
     surfaceRef.current = undefined;
-    videoPlayer.src = ''; // try to unload the video
     console.log('*** video stopped');
   }
 
@@ -52,30 +56,30 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
     console.log('*** navigating back');
     stopVideo();
     navigation.goBack();
+    console.log('*** did go back');
     return true;
   }, []);
 
   useEffect(() => {
-    console.log(`*** playback page mounted: ${videoPlayer.src}`);
+    const video = videoRef.current;
+    console.log(`*** playback page mounted: ${video.src}`);
 
     if (Platform.isTV) {
       BackHandler.addEventListener('hardwareBackPress', navigateBack);
     }
 
-    videoPlayer.initialize().then(() => {
+    video.initialize().then(() => {
       console.log('*** video initialized');
-      videoPlayer.autoplay = false;
-      if (videoPlayer.src != content.uri) {
-        videoPlayer.src = content.uri;
-        console.log('*** video src: ' + videoPlayer.src);
+      video.autoplay = false;
+      if (video.src != content.uri) {
+        video.src = content.uri;
+        console.log('*** video src: ' + video.src);
       } else {
-        videoPlayer.currentTime = 0;
+        video.currentTime = 0;
       }
-      videoPlayer.load();
-      console.log('*** video loaded');
-      // videoPlayer.pause();
-      // console.log('*** video paused');
-      setTimeout(startVideo, 1);
+      video.pause();
+      video.load();
+      startVideo();
     });
 
     return () => {
