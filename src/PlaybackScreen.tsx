@@ -1,9 +1,9 @@
-import React, {useEffect, useRef} from "react";
+import React, {useCallback, useEffect, useRef} from "react";
 import {StyleSheet, useWindowDimensions, View} from 'react-native';
 import {StackScreenProps} from "@amzn/react-navigation__stack";
 
 import {KeplerVideoSurfaceView, VideoPlayer} from "@amzn/react-native-w3cmedia";
-import {Text} from "@amzn/react-native-kepler";
+import {BackHandler, Platform, Text} from "@amzn/react-native-kepler";
 
 const content =
   {
@@ -15,8 +15,6 @@ const content =
 
 // Use a singleton player for the app, to work around video recreation issues.
 const videoPlayer = new VideoPlayer();
-videoPlayer.autoplay = false;
-var videoPlayerInitialized = false;
 
 export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   // Get the full screen resolution
@@ -25,10 +23,12 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   const surfaceRef = useRef<string|undefined>();
 
   const startVideo = () => {
+    console.log('*** attempting video start');
     if (!surfaceRef.current) return;
     if (!videoPlayer.src) return;
     console.log(`*** video starting: ${surfaceRef.current}: ${videoPlayer.src}`);
     videoPlayer.setSurfaceHandle(surfaceRef.current);
+    //videoPlayer.currentTime = 0;
     videoPlayer.play()
       .then(() => {
         console.log('*** video playing');
@@ -42,36 +42,45 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   const stopVideo = () => {
     console.log('*** stopping video');
     videoPlayer.pause();
-    if (surfaceRef.current) {
-      videoPlayer.clearSurfaceHandle(surfaceRef.current);
-      console.log('*** player surface cleared: ' + surfaceRef.current);
-    } else {
-      console.log('*** no surface handle to clear!');
-    }
+    videoPlayer.clearSurfaceHandle('');
+    surfaceRef.current = undefined;
     //videoPlayer.src = ''; // try to unload the video
     console.log('*** video stopped');
   }
 
+  const navigateBack = useCallback(() => {
+    console.log('*** navigating back');
+    stopVideo();
+    navigation.goBack();
+    return true;
+  }, []);
+
   useEffect(() => {
     console.log(`*** playback page mounted: ${videoPlayer.src}`);
-    if (!videoPlayerInitialized) {
-      // We only need to initialize the player instance the first time.
-      console.log('*** video initializing');
-      videoPlayer.initialize().then(() => {
-        console.log('*** video initialized');
-        videoPlayerInitialized = true;
-        videoPlayer.src = content.uri;
-        startVideo();
-      });
 
-    } else {
-      //videoPlayer.src = content.uri;
-      startVideo();
+    if (Platform.isTV) {
+      BackHandler.addEventListener('hardwareBackPress', navigateBack);
     }
+
+    videoPlayer.initialize().then(() => {
+      console.log('*** video initialized');
+      videoPlayer.autoplay = false;
+      if (videoPlayer.src != content.uri) {
+        videoPlayer.src = content.uri;
+        console.log('*** video src: ' + videoPlayer.src);
+      }
+      videoPlayer.load();
+      console.log('*** video loaded');
+      videoPlayer.pause();
+      console.log('*** video paused');
+      startVideo();
+    });
 
     return () => {
       console.log('*** playback page unmounted');
-      stopVideo();
+      if (Platform.isTV) {
+        BackHandler.removeEventListener('hardwareBackPress', navigateBack);
+      }
     };
   }, []);
 
@@ -99,7 +108,7 @@ const styles = StyleSheet.create({
   playbackPage: {
     width: '100%',
     height: '100%',
-    backgroundColor: 'black',
+    backgroundColor: '#606060',
     alignItems: "stretch"
   },
   text: {
