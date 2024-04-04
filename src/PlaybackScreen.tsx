@@ -44,7 +44,7 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
     videoPlayer.pause();
     videoPlayer.clearSurfaceHandle('');
     surfaceRef.current = undefined;
-    //videoPlayer.src = ''; // try to unload the video
+    videoPlayer.src = ''; // try to unload the video
     console.log('*** video stopped');
   }
 
@@ -68,12 +68,14 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
       if (videoPlayer.src != content.uri) {
         videoPlayer.src = content.uri;
         console.log('*** video src: ' + videoPlayer.src);
+      } else {
+        videoPlayer.currentTime = 0;
       }
       videoPlayer.load();
       console.log('*** video loaded');
-      videoPlayer.pause();
-      console.log('*** video paused');
-      startVideo();
+      // videoPlayer.pause();
+      // console.log('*** video paused');
+      setTimeout(startVideo, 1);
     });
 
     return () => {
@@ -89,13 +91,6 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
     surfaceRef.current = surfaceHandle;
     startVideo();
   }
-
-  // const onSurfaceViewDestroyed = (surfaceHandle: string): void => {
-  //   console.log(`*** video surface destroyed: ${surfaceHandle}, has video: ${!!videoRef.current}`);
-  //   if (!videoRef.current) return;
-  //   videoRef.current?.clearSurfaceHandle(surfaceHandle);
-  //   stopVideo();
-  // }
 
   return (
     <View style={styles.playbackPage}>
