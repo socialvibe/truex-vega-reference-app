@@ -33,7 +33,7 @@ export function HomeScreen({ navigation, route }: StackScreenProps<any>) {
             experience.
           </Text>
         </View>
-        <AppButton onPress={() => navigation.navigate('Playback')} label={'Play'} style={styles.playButtonRow} defaultFocus={true}/>
+        <AppButton onPress={() => navigation.navigate('Playback')} label={'Play'} style={styles.playButtonRow} hasTVPreferredFocus={true}/>
         <View style={styles.movieTray}>
           <View style={[styles.tile, styles.selectedTile]}>
             <Image style={styles.selectedTile}

@@ -2,44 +2,46 @@ import React, {useCallback, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {StyleProp} from "react-native/Libraries/StyleSheet/StyleSheet";
 import {ViewStyle} from "react-native/Libraries/StyleSheet/StyleSheetTypes";
-import {findNodeHandle, FocusManager, TouchableHighlight} from "@amzn/react-native-kepler";
+import {findNodeHandle, FocusManager, TouchableHighlight, TouchableOpacity} from "@amzn/react-native-kepler";
+import FocusableView from "./FocusableView";
 
 interface AppButtonProps {
   label: string;
   onPress: Function;
-  defaultFocus?: boolean;
+  hasTVPreferredFocus?: boolean;
   style?: StyleProp<ViewStyle> | undefined;
 }
 
-export function AppButton({label, onPress, style, defaultFocus}: AppButtonProps) {
+export function AppButton({label, onPress, style, hasTVPreferredFocus}: AppButtonProps) {
   const [focused, setFocused] = useState<boolean | undefined>();
 
   const setDefaultFocus = useCallback((touchable: TouchableHighlight) => {
-    if (defaultFocus && focused === undefined && touchable && !FocusManager.getFocused()) {
+    if (hasTVPreferredFocus && focused === undefined && touchable && !FocusManager.getFocused()) {
       // Only set the focus if not set yet. This way for competing defaultFocus=true props, the first one wins.
+      //touchable.focus();
       const handle = findNodeHandle(touchable);
       setFocused(true);
       FocusManager.focus(handle);
     }
-  }, [defaultFocus, setFocused, focused]);
+  }, [hasTVPreferredFocus, setFocused, focused]);
 
   return (
-    <TouchableHighlight
-      ref={setDefaultFocus}
-      style={[styles.buttonContainer, style]}
-      underlayColor='white'
+    <FocusableView
+      hasTVPreferredFocus={hasTVPreferredFocus}
+      style={[styles.button, style]}
+      focusedStyle={styles.focusedButton}
       onPress={() => onPress()}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}>
       <View style={styles.contentLayout}>
         <Text style={[styles.label, focused && styles.focusedLabel]}>{label}</Text>
       </View>
-    </TouchableHighlight>
+    </FocusableView>
   );
 };
 
 const styles = StyleSheet.create({
-  buttonContainer: {
+  button: {
     width: 300,
     height: 80,
     lineHeight: 80,
@@ -48,6 +50,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#9EA3A3',
     opacity: 1
+  },
+  focusedButton: {
+    backgroundColor: 'white',
   },
   contentLayout: {
     marginLeft: 'auto',
