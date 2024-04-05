@@ -11,12 +11,12 @@ interface PlayerUIProps {
   title: string;
 }
 
-interface Header {
+interface HeaderProps {
   title: string;
   navigateBack: () => void;
 }
 
-const Header = ({title, navigateBack}: Header) => {
+function Header({title, navigateBack}: HeaderProps) {
   return (
     <View style={styles.header}>
       <BackButton onPress={navigateBack} hasTVPreferredFocus={true}/>
@@ -25,14 +25,10 @@ const Header = ({title, navigateBack}: Header) => {
       </Text>
     </View>
   );
-};
+}
 
 
-export const PlayerUI = ({
-                           navigateBack,
-                           title,
-                           videoRef,
-                         }: PlayerUIProps) => {
+export function PlayerUI({ navigateBack, title, videoRef, }: PlayerUIProps) {
   if (Platform.isTV) {
     useTVEventHandler((evt: HWEvent) => {
       if (evt && evt.eventKeyAction === 0 && videoRef.current) {
