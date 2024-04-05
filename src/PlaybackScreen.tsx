@@ -44,6 +44,7 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
     if (!video) return;
     video.pause();
     video.clearSurfaceHandle('');
+    video.deinitialize().then(() => console.log('*** video deinitialized'));
     surfaceRef.current = undefined;
     videoRef.current = undefined;
     console.log('*** video stopped');
