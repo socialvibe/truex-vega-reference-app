@@ -1,28 +1,18 @@
-import React, {useCallback, useEffect, useRef} from "react";
-import {StyleSheet, useWindowDimensions, View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef} from "react";
+import {StyleSheet, View} from 'react-native';
 import {StackScreenProps} from "@amzn/react-navigation__stack";
 
 import {KeplerVideoSurfaceView, VideoPlayer} from "@amzn/react-native-w3cmedia";
-import {BackHandler, Platform, Text} from "@amzn/react-native-kepler";
+import {BackHandler, Platform} from "@amzn/react-native-kepler";
+import PlayerUI from "./components/PlayerUI";
 
-const content =
-  {
-    secure: "false", // true : Use Secure Video Buffers. false: Use Unsecure Video Buffers.
-    uri: "https://ctv.truex.com/assets/reference-app-stream-no-cards-720p.mp4",
-    drm_scheme: "", // com.microsoft.playready, com.widevine.alpha depending on the drm schema
-    drm_license_uri: "", // DRM License acquisition server URL : needed only if the content is DRM protected
-  };
+import videoStream from './data/video-streams.json';
 
 export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
-  // Get the full screen resolution
-  const {width: deviceWidth, height: deviceHeight} = useWindowDimensions();
-
-  const videoRef = useRef<VideoPlayer | undefined>(new VideoPlayer());
+  const video = useMemo(() => new VideoPlayer(), []);
   const surfaceRef = useRef<string|undefined>();
 
   const startVideo = () => {
-    const video = videoRef.current;
-    if (!video) return;
     if (!surfaceRef.current) return;
     if (!video.src) return;
     video.setSurfaceHandle(surfaceRef.current);
@@ -40,13 +30,10 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   }
 
   const stopVideo = () => {
-    const video = videoRef.current;
-    if (!video) return;
     video.pause();
     video.clearSurfaceHandle('');
     video.deinitialize().then(() => console.log('*** video deinitialized'));
     surfaceRef.current = undefined;
-    videoRef.current = undefined;
     console.log('*** video stopped');
   }
 
@@ -57,7 +44,6 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   }, []);
 
   useEffect(() => {
-    const video = videoRef.current;
     if (!video) {
       console.error('*** video was not created!');
       return;
@@ -72,7 +58,7 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
       console.log('*** video initialized');
       video.autoplay = false;
 
-      video.src = content.uri;
+      video.src = videoStream.url;
       console.log('*** video src: ' + video.src);
       video.autoplay = false;
       video.pause();
@@ -97,6 +83,7 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   return (
     <View style={styles.playbackPage}>
       <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated}/>
+      <PlayerUI video={video} navigateBack={navigateBack} title={videoStream.title}/>
     </View>
   );
 }

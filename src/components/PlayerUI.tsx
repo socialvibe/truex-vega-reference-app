@@ -1,102 +1,143 @@
-import React from 'react';
-import {Platform, StyleSheet, Text, View,} from 'react-native';
-import BackButton from './BackButton';
+import React, {useMemo, useState} from 'react';
+import {Platform, StyleSheet, useWindowDimensions, View,} from 'react-native';
+import {HWEvent, Image, useTVEventHandler} from "@amzn/react-native-kepler";
+import {VideoPlayer} from "@amzn/react-native-w3cmedia";
 
-import PlaybackControls, {seekBackward, seekForward, VideoPlayerRef} from './PlaybackControls';
-import {HWEvent, useTVEventHandler} from "@amzn/react-native-kepler";
+import playIcon from '../assets/play.png';
+import pauseIcon from '../assets/pause.png';
+
+const playW = 18;
+const timelineW = 1300;
+const timelineH = 7;
+const padding = 6;
+const gap = 10;
+const durationW = 90;
+
+const styles = StyleSheet.create({
+  playbackContainer: {
+    position: 'absolute',
+    zIndex: 5,
+    height: '100%',
+    width: '100%',
+  },
+  adIndicator: {
+    position: 'absolute',
+    padding: 12,
+    left: 40,
+    top: 40,
+    color: 'white',
+    fontSize: 50,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+  },
+  controlBar: {
+    position: 'absolute',
+    width: padding + playW + gap + timelineW + gap + durationW,
+    height: timelineH + 2*padding,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: padding
+  },
+  playPauseButton: {
+    verticalAlign: 'middle',
+    width: playW,
+    height: 26
+  },
+  playPauseIcon: {
+    width: playW,
+    height: playW
+  }
+});
 
 interface PlayerUIProps {
-  videoRef: VideoPlayerRef;
+  video: VideoPlayer;
   navigateBack: () => void;
   title: string;
 }
 
-interface HeaderProps {
-  title: string;
-  navigateBack: () => void;
-}
+export function PlayerUI({ navigateBack, title, video }: PlayerUIProps) {
+  // Get the full screen resolution
+  const {width: deviceWidth, height: deviceHeight} = useWindowDimensions();
 
-function Header({title, navigateBack}: HeaderProps) {
-  return (
-    <View style={styles.header}>
-      <BackButton onPress={navigateBack} hasTVPreferredFocus={true}/>
-      <Text numberOfLines={1} style={styles.title}>
-        {title}
-      </Text>
-    </View>
-  );
-}
+  const controlBarLayout = useMemo(() => {
+    const controlBar = styles.controlBar;
+    return {
+      ...controlBar,
+      top: (deviceWidth - controlBar.width) / 2,
+      bottom: deviceHeight - controlBar.height - 200
+    };
+  }, [deviceWidth, deviceHeight]);
 
+  const [isPlaying, setPlaying] = useState(!video.paused);
+  const [showControls, setShowControls] = useState(true);
 
-export function PlayerUI({ navigateBack, title, videoRef, }: PlayerUIProps) {
   if (Platform.isTV) {
     useTVEventHandler((evt: HWEvent) => {
-      if (evt && evt.eventKeyAction === 0 && videoRef.current) {
-        if (evt.eventType === 'playpause') {
-          if (videoRef.current.paused) {
-            videoRef.current.play();
+      const event = evt.eventKeyAction === 0 && evt.eventType;
+      switch (event) {
+        case 'back':
+          navigateBack();
+          break;
+
+        case 'playpause':
+        case 'select':
+          if (video.paused) {
+            video.play();
           } else {
-            videoRef.current.pause();
+            video.pause();
           }
-        } else if (evt.eventType === 'play') {
-          videoRef.current.play();
-        } else if (evt.eventType === 'pause') {
-          videoRef.current.pause();
-        } else if (evt.eventType === 'skip_forward') {
-          seekForward(videoRef);
-        } else if (evt.eventType === 'skip_backward') {
-          seekBackward(videoRef);
-        }
+          break;
+
+        case 'play':
+          video.play();
+          break;
+
+        case 'pause':
+          video.pause();
+          break;
+
+        case 'skip_forward':
+        case 'right':
+          seekForward(video);
+          break;
+
+        case 'skip_backward':
+        case 'left':
+          seekBackward(video);
+          break;
       }
     });
   }
-  return (
-    <View style={styles.uiContainer}>
-      <View style={styles.ui}>
-        <Header navigateBack={navigateBack} title={title}/>
-        <PlaybackControls videoRef={videoRef}/>
+
+  return showControls && (
+    <View style={styles.playbackContainer}>
+      <View style={controlBarLayout}>
+        <View style={styles.playPauseButton}>
+          <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon}/>
+        </View>
+
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  playerMenusContainer: {
-    position: 'absolute',
-    bottom: 90,
-    right: 0,
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    opacity: 0.8,
-    width: '100%',
-  },
-  controlBar: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  title: {
-    color: 'white',
-    fontWeight: '500',
-    fontSize: 70,
-    marginLeft: 90,
-    textAlign: 'right',
-    width: '50%',
-  },
-  ui: {
-    height: '100%',
-    width: '100%',
-    justifyContent: 'space-between',
-  },
-  uiContainer: {
-    position: 'absolute',
-    zIndex: 5,
-    height: '100%',
-    width: '100%',
-  }
-});
-
 export default PlayerUI;
+
+export function seek(seekSeconds: number, video: VideoPlayer) {
+  if (video.currentTime >= 0) {
+    const { currentTime, duration } = video;
+    let newTime = currentTime + seekSeconds;
+    if (newTime > duration) {
+      newTime = duration;
+    } else if (newTime < 0) {
+      newTime = 0;
+    }
+    video.currentTime = newTime;
+  }
+}
+
+export function seekForward(video: VideoPlayer) {
+  seek(10, video);
+}
+
+export function seekBackward(video: VideoPlayer) {
+  seek(-10, video);
+}
