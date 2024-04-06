@@ -223,6 +223,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
         <View style={styles.playbackContainer}>
           <View style={controlBarLayout}>
             <View style={styles.playPauseButton}>
+              {/* show that the next play/pause action will do */}
               <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon}/>
             </View>
             <View style={styles.timeline}>
