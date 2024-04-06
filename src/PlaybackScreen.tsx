@@ -8,8 +8,16 @@ import PlayerUI from "./components/PlayerUI";
 
 import videoStream from './data/video-streams.json';
 
+import {getAdPlaylist} from "./ads/AdBreak";
+
 export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   const video = useMemo(() => new VideoPlayer(), []);
+
+  // Would be passed in as a page route arg in a real app, as would the video steam itself.
+  const adPlaylist = useMemo(() => {
+    return getAdPlaylist(videoStream.vmap);
+  }, []);
+
   const surfaceRef = useRef<string|undefined>();
 
   const startVideo = () => {
@@ -83,7 +91,7 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
   return (
     <View style={styles.playbackPage}>
       <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated}/>
-      <PlayerUI video={video} navigateBack={navigateBack} title={videoStream.title}/>
+      <PlayerUI video={video} navigateBack={navigateBack} title={videoStream.title} adPlaylist={adPlaylist}/>
     </View>
   );
 }

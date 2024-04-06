@@ -3,6 +3,7 @@
  * (ads are assumed to be sitched in), that furthermore describes a true[X] interactive ad to show
  * over top of the main video when the ad break is encountered during playback.
  */
+
 export class AdBreak {
     public id: string;
     public duration: number;
@@ -33,20 +34,6 @@ export class AdBreak {
     }
 }
 
-export function getAdPlaylist(vmap: object[]) {
-    const adPlaylist = vmap.map((vmapJson: any) => new AdBreak(vmapJson));
-
-    // Correct ad display times into raw video times for the actual time in the overall video.
-    let totalAdsDuration = 0;
-    adPlaylist.forEach(adBreak => {
-        adBreak.startTime = adBreak.displayTimeOffset + totalAdsDuration;
-        adBreak.endTime = adBreak.startTime + adBreak.duration;
-        totalAdsDuration += adBreak.duration;
-    });
-
-    return adPlaylist;
-}
-
 function parseTimeLabel(label: string):number {
     if (!label) return 0;
     let hours = 0;
@@ -65,3 +52,81 @@ function parseTimeLabel(label: string):number {
     }
     return seconds + minutes*60 + hours*60*60;
 }
+
+export function getAdPlaylist(vmap: object[]) {
+    const adPlaylist = vmap.map((vmapJson: any) => new AdBreak(vmapJson));
+
+    // Correct ad display times into raw video times for the actual time in the overall video.
+    let totalAdsDuration = 0;
+    adPlaylist.forEach(adBreak => {
+        adBreak.startTime = adBreak.displayTimeOffset + totalAdsDuration;
+        adBreak.endTime = adBreak.startTime + adBreak.duration;
+        totalAdsDuration += adBreak.duration;
+    });
+
+    return adPlaylist;
+}
+
+export function hasAdBreakAt(rawVideoTime: number, adPlaylist: AdBreak[]) {
+    const adBreak = getAdBreakAt(rawVideoTime, adPlaylist);
+    return !!adBreak;
+}
+
+export function getAdBreakAt(rawVideoTime: number, adPlaylist: AdBreak[]) {
+    for (const index in adPlaylist) {
+        const adBreak = adPlaylist[index];
+        if (adBreak.startTime <= rawVideoTime && rawVideoTime < adBreak.endTime) {
+            return adBreak;
+        }
+    }
+    return undefined;
+}
+
+// We assume ad videos are stitched into the main video.
+export function getDisplayVideoTimeAt(rawVideoTime: number, skipAds: boolean, adPlaylist: AdBreak[]) {
+    let result = rawVideoTime;
+    for(const index in adPlaylist) {
+        const adBreak = adPlaylist[index];
+        if (rawVideoTime < adBreak.startTime) break; // future ads don't affect things
+        if (!skipAds && adBreak.startTime <= rawVideoTime && rawVideoTime < adBreak.endTime) {
+            // We are within the ad, show the ad time.
+            return rawVideoTime - adBreak.startTime;
+        } else if (adBreak.endTime <= rawVideoTime) {
+            // Discount the ad duration.
+            result -= adBreak.duration;
+        }
+    }
+    return result;
+}
+
+export function getDisplayVideoDurationAt(rawVideoTime: number, duration: number, adPlaylist: AdBreak[]) {
+    const adBreak = getAdBreakAt(rawVideoTime, adPlaylist);
+    if (adBreak) {
+        return adBreak.duration;
+    }
+    return getDisplayVideoTimeAt(duration, true, adPlaylist);
+}
+
+export function timeDebugDisplay(rawVideoTime: number, adPlaylist: AdBreak[]) {
+    const displayTime = getDisplayVideoTimeAt(rawVideoTime, true, adPlaylist);
+    return `${timeLabel(displayTime)} (raw: ${timeLabel(rawVideoTime)})`;
+}
+
+export function timeLabel(time: number): string {
+    const seconds = time % 60;
+    time /= 60;
+    const minutes = time % 60;
+    time /= 60;
+    const hours = time;
+
+    const result = pad(minutes) + ':' + pad(seconds);
+    if (hours >= 1) return Math.floor(hours) + ':' + result;
+    return result;
+}
+
+export function pad(value: number): string {
+    value = Math.floor(value || 0);
+    return (value < 10) ? '0' + value : value.toString();
+}
+
+
