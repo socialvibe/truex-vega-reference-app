@@ -1,3 +1,5 @@
+import {useCallback} from "react";
+
 /**
  * Describes a single ad break that maps to 1 or more fallback ad videos in the main video
  * (ads are assumed to be sitched in), that furthermore describes a true[X] interactive ad to show
@@ -128,5 +130,11 @@ export function pad(value: number): string {
     value = Math.floor(value || 0);
     return (value < 10) ? '0' + value : value.toString();
 }
+
+export function percentageSize(time: number, duration: number): `${number}%` {
+    const result = duration > 0 ? (time / duration) * 100 : 0;
+    return `${result}%`;
+}
+
 
 

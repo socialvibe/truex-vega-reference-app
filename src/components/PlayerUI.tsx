@@ -1,11 +1,11 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Platform, StyleSheet, Text, useWindowDimensions, View,} from 'react-native';
 import {HWEvent, Image, useTVEventHandler} from "@amzn/react-native-kepler";
 import {VideoPlayer} from "@amzn/react-native-w3cmedia";
 
 import playIcon from '../assets/play.png';
 import pauseIcon from '../assets/pause.png';
-import {AdBreak, getDisplayVideoDurationAt, getDisplayVideoTimeAt, timeLabel} from "../ads/AdBreak";
+import {AdBreak, getDisplayVideoDurationAt, getDisplayVideoTimeAt, percentageSize, timeLabel} from "../ads/AdBreak";
 
 const playW = 18;
 const timelineW = 1300;
@@ -117,17 +117,23 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   const {width: deviceWidth, height: deviceHeight} = useWindowDimensions();
 
   const [isPlaying, setPlaying] = useState(!video.paused);
-  const [showControls, setShowControls] = useState(true);
+  const [isShowingAd, setIsShowingAd] = useState(false);
+  const [isShowingControls, setIsShowingControls] = useState(true);
   const [streamTime, setStreamTime] = useState(0);
   const [seekTarget, setSeekTarget] = useState(0);
 
+  const controlsDisplayTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>();
+
+  function showControls(show: boolean, useTimeout = true) {
+    if (controlsDisplayTimerRef.current) clearTimeout(controlsDisplayTimerRef.current);
+    setIsShowingControls(show);
+    if (show && useTimeout) {
+      controlsDisplayTimerRef.current = setTimeout(() => showControls(false), 8 * 1000);
+    }
+  }
+
   const durationToDisplay = useMemo(() => getDisplayVideoDurationAt(streamTime, video.duration, adPlaylist),
     [streamTime, video.duration, adPlaylist]);
-
-  const percentage = useCallback((time: number): `${number}%` => {
-    const result = durationToDisplay > 0 ? (time / durationToDisplay) * 100 : 0;
-    return `${result}%`;
-  }, [durationToDisplay]);
 
   const currentDisplayTime = useMemo(() => getDisplayVideoTimeAt(streamTime, false, adPlaylist), [streamTime, adPlaylist]);
 
@@ -152,32 +158,40 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     const progressBar = styles.timelineProgress;
     return {
       ...progressBar,
-      width: percentage(timelineDisplayTime)
+      width: percentageSize(timelineDisplayTime, durationToDisplay)
     };
-  }, [timelineDisplayTime]);
+  }, [timelineDisplayTime, durationToDisplay]);
 
   const seekLayout = useMemo(() => {
     const seekTargetDiff = Math.abs(currentDisplayTime - timelineDisplayTime);
-    const seekBarW = percentage(seekTargetDiff);
+    const seekBarW = percentageSize(seekTargetDiff, durationToDisplay);
     let seekBarX;
     if (currentDisplayTime <= timelineDisplayTime) {
-      seekBarX = percentage(currentDisplayTime);
+      seekBarX = percentageSize(currentDisplayTime, durationToDisplay);
     } else {
-      seekBarX = percentage(currentDisplayTime - seekTargetDiff);
+      seekBarX = percentageSize(currentDisplayTime - seekTargetDiff, durationToDisplay);
     }
     return {
       ...styles.timelineSeek,
       width: seekBarW,
       left: seekBarX
     };
-  }, [currentDisplayTime, timelineDisplayTime, seekTarget]);
+  }, [currentDisplayTime, timelineDisplayTime, durationToDisplay, seekTarget]);
 
   const currentTimeLayout = useMemo(() => {
     return {
       ...styles.currentTime,
-      left: percentage(currentDisplayTime)
+      left: percentageSize(currentDisplayTime, durationToDisplay)
     };
-  }, []);
+  }, [currentDisplayTime, durationToDisplay]);
+
+  const seekStep = useCallback((seekSeconds: number) => {
+    if (video.currentTime >= 0) {
+      const newTime = Math.max(0, Math.min(video.currentTime + seekSeconds, video.duration));
+      video.currentTime = newTime;
+      setSeekTarget(newTime);
+    }
+  }, [video, setSeekTarget]);
 
   if (Platform.isTV) {
     useTVEventHandler((evt: HWEvent) => {
@@ -191,27 +205,33 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
         case 'select':
           if (video.paused) {
             video.play();
+            showControls(true);
           } else {
             video.pause();
+            showControls(true, false);
           }
           break;
 
         case 'play':
           video.play();
+          showControls(true);
           break;
 
         case 'pause':
           video.pause();
+          showControls(true, false);
           break;
 
         case 'skip_forward':
         case 'right':
-          seekForward(video);
+          seekStep(10);
+          showControls(true);
           break;
 
         case 'skip_backward':
         case 'left':
-          seekBackward(video);
+          seekStep(-10);
+          showControls(true);
           break;
       }
     });
@@ -219,7 +239,8 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
   return (
     <>
-      {showControls && (
+      {isShowingAd && <View style={styles.adIndicator}><Text>Ad</Text></View>}
+      {isShowingControls && (
         <View style={styles.playbackContainer}>
           <View style={controlBarLayout}>
             <View style={styles.playPauseButton}>
@@ -241,24 +262,3 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 }
 
 export default PlayerUI;
-
-export function seek(seekSeconds: number, video: VideoPlayer) {
-  if (video.currentTime >= 0) {
-    const { currentTime, duration } = video;
-    let newTime = currentTime + seekSeconds;
-    if (newTime > duration) {
-      newTime = duration;
-    } else if (newTime < 0) {
-      newTime = 0;
-    }
-    video.currentTime = newTime;
-  }
-}
-
-export function seekForward(video: VideoPlayer) {
-  seek(10, video);
-}
-
-export function seekBackward(video: VideoPlayer) {
-  seek(-10, video);
-}
