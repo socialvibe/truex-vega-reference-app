@@ -1,9 +1,9 @@
-import React, {useCallback, useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import {StyleProp} from "react-native/Libraries/StyleSheet/StyleSheet";
-import {ViewStyle} from "react-native/Libraries/StyleSheet/StyleSheetTypes";
-import {findNodeHandle, FocusManager, TouchableHighlight, TouchableOpacity} from "@amzn/react-native-kepler";
-import FocusableView from "./FocusableView";
+import React, { useCallback, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { StyleProp } from 'react-native/Libraries/StyleSheet/StyleSheet';
+import { ViewStyle } from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
+import { findNodeHandle, FocusManager, TouchableHighlight } from '@amzn/react-native-kepler';
+import FocusableView from './FocusableView';
 
 interface AppButtonProps {
   label: string;
@@ -12,18 +12,21 @@ interface AppButtonProps {
   style?: StyleProp<ViewStyle> | undefined;
 }
 
-export function AppButton({label, onPress, style, hasTVPreferredFocus}: AppButtonProps) {
+export function AppButton({ label, onPress, style, hasTVPreferredFocus }: AppButtonProps) {
   const [focused, setFocused] = useState<boolean | undefined>();
 
-  const setDefaultFocus = useCallback((touchable: TouchableHighlight) => {
-    if (hasTVPreferredFocus && focused === undefined && touchable && !FocusManager.getFocused()) {
-      // Only set the focus if not set yet. This way for competing defaultFocus=true props, the first one wins.
-      //touchable.focus();
-      const handle = findNodeHandle(touchable);
-      setFocused(true);
-      FocusManager.focus(handle);
-    }
-  }, [hasTVPreferredFocus, setFocused, focused]);
+  const setDefaultFocus = useCallback(
+    (touchable: TouchableHighlight) => {
+      if (hasTVPreferredFocus && focused === undefined && touchable && !FocusManager.getFocused()) {
+        // Only set the focus if not set yet. This way for competing defaultFocus=true props, the first one wins.
+        //touchable.focus();
+        const handle = findNodeHandle(touchable);
+        setFocused(true);
+        FocusManager.focus(handle);
+      }
+    },
+    [hasTVPreferredFocus, setFocused, focused]
+  );
 
   return (
     <FocusableView
@@ -32,13 +35,14 @@ export function AppButton({label, onPress, style, hasTVPreferredFocus}: AppButto
       focusedStyle={styles.focusedButton}
       onPress={() => onPress()}
       onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}>
+      onBlur={() => setFocused(false)}
+    >
       <View style={styles.contentLayout}>
         <Text style={[styles.label, focused && styles.focusedLabel]}>{label}</Text>
       </View>
     </FocusableView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   button: {
@@ -52,18 +56,18 @@ const styles = StyleSheet.create({
     opacity: 1
   },
   focusedButton: {
-    backgroundColor: 'white',
+    backgroundColor: 'white'
   },
   contentLayout: {
     marginLeft: 'auto',
-    marginRight: 'auto',
+    marginRight: 'auto'
   },
   label: {
     color: 'white',
-    fontSize: 45,
+    fontSize: 45
   },
   focusedLabel: {
-    color: 'black',
+    color: 'black'
   }
 });
 

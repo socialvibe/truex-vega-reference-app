@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { HWEvent, Image, useTVEventHandler } from '@amzn/react-native-kepler';
 import { VideoPlayer } from '@amzn/react-native-w3cmedia';
 
@@ -7,11 +7,11 @@ import playIcon from '../assets/play.png';
 import pauseIcon from '../assets/pause.png';
 import {
   AdBreak,
-  getVideoDurationAt,
   getContentVideoTimeAt,
+  getVideoDurationAt,
+  hasAdBreakAt,
   percentageSize,
-  timeLabel,
-  hasAdBreakAt
+  timeLabel
 } from '../ads/AdBreak';
 
 const playW = 18;
@@ -166,7 +166,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('seeked', onSeeked);
     };
-  }, []);
+  }, [video]);
 
   const durationToDisplay = useMemo(
     () => getVideoDurationAt(streamTime, video.duration, adPlaylist),
@@ -228,9 +228,9 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
   const seekTo = useCallback(
     (newTime: number) => {
-      const seekTarget = Math.max(0, Math.min(newTime, video.duration));
-      video.currentTime = seekTarget;
-      setSeekTarget(seekTarget);
+      const newTarget = Math.max(0, Math.min(newTime, video.duration));
+      video.currentTime = newTarget;
+      setSeekTarget(newTarget);
     },
     [video]
   );
@@ -240,7 +240,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       if (isShowingAd) return; // prevent user seeks during an ad
       seekTo(video.currentTime + seekSeconds);
     },
-    [video]
+    [video, isShowingAd, seekTo]
   );
 
   useTVEventHandler((evt: HWEvent) => {
