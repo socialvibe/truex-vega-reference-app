@@ -54,7 +54,7 @@ function parseTimeLabel(label: string): number {
 }
 
 export function getAdPlaylist(vmap: object[]) {
-  const adPlaylist = vmap.map((vmapJson: any) => new AdBreak(vmapJson));
+  const adPlaylist = vmap?.map((vmapJson: any) => new AdBreak(vmapJson)) || [];
 
   // Correct ad display times into raw video times for the actual time in the overall video.
   let totalAdsDuration = 0;
@@ -73,10 +73,12 @@ export function hasAdBreakAt(rawVideoTime: number, adPlaylist: AdBreak[]) {
 }
 
 export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[]) {
-  for (const index in adPlaylist) {
-    const adBreak = adPlaylist[index];
-    if (adBreak.startTime <= streamTime && streamTime < adBreak.endTime) {
-      return adBreak;
+  if (adPlaylist) {
+    for (const index in adPlaylist) {
+      const adBreak = adPlaylist[index];
+      if (adBreak.startTime <= streamTime && streamTime < adBreak.endTime) {
+        return adBreak;
+      }
     }
   }
   return undefined;

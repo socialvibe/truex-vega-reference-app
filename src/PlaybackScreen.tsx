@@ -15,6 +15,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   // Would be passed in as a page route arg in a real app, as would the video steam itself.
   const adPlaylist = useMemo(() => {
+    console.log('*** vstream: ' + JSON.stringify(videoStream));
     return getAdPlaylist(videoStream.vmap);
   }, []);
 
