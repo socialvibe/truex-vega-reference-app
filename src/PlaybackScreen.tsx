@@ -15,7 +15,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   // Would be passed in as a page route arg in a real app, as would the video steam itself.
   const adPlaylist = useMemo(() => {
-    console.log('*** vstream: ' + JSON.stringify(videoStream));
     return getAdPlaylist(videoStream.vmap);
   }, []);
 
@@ -112,7 +111,7 @@ const styles = StyleSheet.create({
     marginTop: 200
   },
   videoView: {
-    backgroundColor: 'transparent',
+    zIndex: 0,
     top: 0,
     left: 0,
     position: 'absolute',

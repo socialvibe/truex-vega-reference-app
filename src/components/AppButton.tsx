@@ -1,8 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { StyleProp } from 'react-native/Libraries/StyleSheet/StyleSheet';
 import { ViewStyle } from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
-import { findNodeHandle, FocusManager, TouchableHighlight } from '@amzn/react-native-kepler';
 import FocusableView from './FocusableView';
 
 interface AppButtonProps {
@@ -14,25 +13,10 @@ interface AppButtonProps {
 
 export function AppButton({ label, onPress, style, hasTVPreferredFocus }: AppButtonProps) {
   const [focused, setFocused] = useState<boolean | undefined>();
-
-  const setDefaultFocus = useCallback(
-    (touchable: TouchableHighlight) => {
-      if (hasTVPreferredFocus && focused === undefined && touchable && !FocusManager.getFocused()) {
-        // Only set the focus if not set yet. This way for competing defaultFocus=true props, the first one wins.
-        //touchable.focus();
-        const handle = findNodeHandle(touchable);
-        setFocused(true);
-        FocusManager.focus(handle);
-      }
-    },
-    [hasTVPreferredFocus, setFocused, focused]
-  );
-
   return (
     <FocusableView
       hasTVPreferredFocus={hasTVPreferredFocus}
-      style={[styles.button, style]}
-      focusedStyle={styles.focusedButton}
+      style={[styles.button, focused && styles.focusedButton]}
       onPress={() => onPress()}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}

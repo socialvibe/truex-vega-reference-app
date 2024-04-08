@@ -1,10 +1,9 @@
-import React, {forwardRef, Ref, useImperativeHandle, useRef, useState} from 'react';
-import {StyleProp, TouchableOpacity, TouchableOpacityProps, ViewStyle,} from 'react-native';
+import React, { forwardRef, Ref, useImperativeHandle, useRef } from 'react';
+import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
 
 interface FocusableViewProps extends TouchableOpacityProps {
   children?: React.ReactNode;
   onFocusChanged?: (hasFocus: boolean) => void;
-  focusedStyle?: StyleProp<ViewStyle>;
   hasTVPreferredFocus?: boolean;
   focusableRef?: Ref<TouchableOpacity>;
   onPress?: () => void;
@@ -16,23 +15,9 @@ export type FocusableRef = {
 };
 
 export const FocusableView = forwardRef<FocusableRef, FocusableViewProps>((props, ref) => {
-  const {children,
-    onPress,
-    onFocusChanged,
-    style,
-    focusedStyle,
-    hasTVPreferredFocus,
-    ...otherProps
-  }: FocusableViewProps = props;
+  const { children, onPress, onFocusChanged, style, hasTVPreferredFocus, ...otherProps }: FocusableViewProps = props;
 
-  const [hasFocus, setHasFocus] = useState(false);
-
-  const focusHandler = (hasFocus: boolean) => {
-    setHasFocus(hasFocus);
-    onFocusChanged?.(hasFocus);
-  };
-
-  const touchableRef = useRef<TouchableOpacity|null>(null);
+  const touchableRef = useRef<TouchableOpacity | null>(null);
 
   // Expose focus/blur ability to callers
   useImperativeHandle(ref, () => ({
@@ -45,11 +30,12 @@ export const FocusableView = forwardRef<FocusableRef, FocusableViewProps>((props
       ref={touchableRef}
       activeOpacity={1}
       hasTVPreferredFocus={hasTVPreferredFocus}
-      onFocus={() => focusHandler(true)}
-      onBlur={() => focusHandler(false)}
+      onFocus={() => onFocusChanged?.(true)}
+      onBlur={() => onFocusChanged?.(false)}
       onPress={onPress}
-      style={[style, hasFocus ? focusedStyle : undefined]}
-      {...otherProps}>
+      style={style}
+      {...otherProps}
+    >
       {children}
     </TouchableOpacity>
   );

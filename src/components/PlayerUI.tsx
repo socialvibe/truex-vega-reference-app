@@ -25,16 +25,20 @@ const styles = StyleSheet.create({
   playbackContainer: {
     position: 'absolute',
     zIndex: 5,
+    top: 0,
+    left: 0,
     height: '100%',
     width: '100%'
+  },
+  adLabel: {
+    color: 'white',
+    fontSize: 50
   },
   adIndicator: {
     position: 'absolute',
     padding: 12,
     left: 40,
     top: 40,
-    color: 'white',
-    fontSize: 50,
     backgroundColor: 'rgba(0, 0, 0, 0.5)'
   },
   controlBar: {
@@ -148,10 +152,24 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   }
 
   useEffect(() => {
+    // Ensure timer is cleaned up.
+    return () => stopControlsDisplayTimer();
+  }, [video]);
+
+
+  useEffect(() => {
     const onPlaying = () => setPlaying(true);
     const onPaused = () => setPlaying(false);
-    const onTimeUpdate = () => setStreamTime(video.currentTime);
-    const onSeeked = () => setSeekTarget(-1);
+    const onSeeked = () => setSeekTarget(-1); // does not seem to fire in the simulator
+
+    const onTimeUpdate = (event: any) => {
+      const currTime = Math.floor(video.currentTime);
+      setStreamTime(currTime);
+      if (seekTarget >= 0 && Math.abs(seekTarget - currTime) <= 2) {
+        // backup to ensure we know when seeking is complete
+        setSeekTarget(-1);
+      }
+    };
 
     video.addEventListener('playing', onPlaying);
     video.addEventListener('paused', onPaused);
@@ -159,14 +177,12 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     video.addEventListener('seeked', onSeeked);
 
     return () => {
-      stopControlsDisplayTimer();
-
       video.removeEventListener('playing', onPlaying);
       video.removeEventListener('paused', onPaused);
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('seeked', onSeeked);
     };
-  }, [video]);
+  }, [video, seekTarget]);
 
   const durationToDisplay = useMemo(
     () => getVideoDurationAt(streamTime, video.duration, adPlaylist),
@@ -179,7 +195,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   );
 
   const timelineDisplayTime = useMemo(() => {
-    if (seekTarget !== undefined && seekTarget >= 0) {
+    if (seekTarget >= 0) {
       // Show the seek target instead of the playback time.
       return getContentVideoTimeAt(seekTarget, true, adPlaylist);
     }
@@ -222,30 +238,43 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   const timeDisplayLayout = useMemo(() => {
     return {
       ...styles.currentTime,
-      left: percentageSize(currentDisplayTime, durationToDisplay)
+      left: percentageSize(timelineDisplayTime, durationToDisplay)
     };
-  }, [currentDisplayTime, durationToDisplay]);
+  }, [timelineDisplayTime, durationToDisplay]);
 
   const seekTo = useCallback(
     (newTime: number) => {
       const newTarget = Math.max(0, Math.min(newTime, video.duration));
-      video.currentTime = newTarget;
+      console.log('*** seekTo: ' + timeLabel(newTarget));
       setSeekTarget(newTarget);
+      video.currentTime = newTarget;
     },
     [video]
   );
 
   const seekStep = useCallback(
     (seekSeconds: number) => {
-      if (isShowingAd) return; // prevent user seeks during an ad
+      //if (isShowingAd) return; // prevent user seeks during an ad
       seekTo(video.currentTime + seekSeconds);
     },
-    [video, isShowingAd, seekTo]
+    [video, seekTo/*, isShowingAd */]
   );
 
+  function play() {
+    video.play();
+    setPlaying(true);
+    showControls(true);
+  }
+
+  function pause() {
+    video.pause();
+    setPlaying(false);
+    showControls(true, false);
+  }
+
   useTVEventHandler((evt: HWEvent) => {
-    const event = evt.eventKeyAction === 0 && evt.eventType;
-    switch (event) {
+    if (evt.eventKeyAction !== 0) return; // ignore key up events
+    switch (evt.eventType) {
       case 'back':
         navigateBack();
         break;
@@ -253,22 +282,18 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       case 'playpause':
       case 'select':
         if (video.paused) {
-          video.play();
-          showControls(true);
+          play();
         } else {
-          video.pause();
-          showControls(true, false);
+          pause();
         }
         break;
 
       case 'play':
-        video.play();
-        showControls(true);
+        play();
         break;
 
       case 'pause':
-        video.pause();
-        showControls(true, false);
+        pause();
         break;
 
       case 'skip_forward':
@@ -287,11 +312,6 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
   return (
     <>
-      {isShowingAd && (
-        <View style={styles.adIndicator}>
-          <Text>Ad</Text>
-        </View>
-      )}
       {isShowingControls && (
         <View style={styles.playbackContainer}>
           <View style={controlBarLayout}>
@@ -311,6 +331,11 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
               <Text>{timeLabel(durationToDisplay)}</Text>
             </View>
           </View>
+        </View>
+      )}
+      {isShowingAd && (
+        <View style={styles.adIndicator}>
+          <Text style={styles.adLabel}>Ad</Text>
         </View>
       )}
     </>

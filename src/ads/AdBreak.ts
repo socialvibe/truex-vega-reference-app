@@ -115,6 +115,8 @@ export function timeDebugDisplay(streamTime: number, adPlaylist: AdBreak[]) {
 }
 
 export function timeLabel(time: number): string {
+  if (time < 0) return "-1";
+
   const seconds = time % 60;
   time /= 60;
   const minutes = time % 60;
