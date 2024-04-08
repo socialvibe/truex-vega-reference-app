@@ -1,16 +1,16 @@
-import React, {useCallback, useEffect, useMemo, useRef} from "react";
-import {StyleSheet, View} from 'react-native';
-import {StackScreenProps} from "@amzn/react-navigation__stack";
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { StackScreenProps } from '@amzn/react-navigation__stack';
 
-import {KeplerVideoSurfaceView, VideoPlayer} from "@amzn/react-native-w3cmedia";
-import {BackHandler, Platform} from "@amzn/react-native-kepler";
-import PlayerUI from "./components/PlayerUI";
+import { KeplerVideoSurfaceView, VideoPlayer } from '@amzn/react-native-w3cmedia';
+import { BackHandler, Platform } from '@amzn/react-native-kepler';
+import PlayerUI from './components/PlayerUI';
 
 import videoStream from './data/video-streams.json';
 
-import {getAdPlaylist} from "./ads/AdBreak";
+import { getAdPlaylist } from './ads/AdBreak';
 
-export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
+export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const video = useMemo(() => new VideoPlayer(), []);
 
   // Would be passed in as a page route arg in a real app, as would the video steam itself.
@@ -18,16 +18,17 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
     return getAdPlaylist(videoStream.vmap);
   }, []);
 
-  const surfaceRef = useRef<string|undefined>();
+  const surfaceRef = useRef<string | undefined>();
 
-  const startVideo = () => {
+  const startVideo = useCallback(() => {
     if (!surfaceRef.current) return;
     if (!video.src) return;
     video.setSurfaceHandle(surfaceRef.current);
 
     // Starting playback "later" seems to help.
     setTimeout(() => {
-      video.play()
+      video
+        .play()
         .then(() => {
           console.log('*** video playing');
         })
@@ -35,21 +36,21 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
           console.error(`*** video play error: ${err}`);
         });
     }, 5);
-  }
+  }, [video]);
 
-  const stopVideo = () => {
+  const stopVideo = useCallback(() => {
     video.pause();
     video.clearSurfaceHandle('');
     video.deinitialize().then(() => console.log('*** video deinitialized'));
     surfaceRef.current = undefined;
     console.log('*** video stopped');
-  }
+  }, [video]);
 
   const navigateBack = useCallback(() => {
     stopVideo();
     navigation.goBack();
     return true;
-  }, []);
+  }, [navigation, stopVideo]);
 
   useEffect(() => {
     if (!video) {
@@ -80,18 +81,18 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
         BackHandler.removeEventListener('hardwareBackPress', navigateBack);
       }
     };
-  }, []);
+  }, [video, navigateBack, startVideo]);
 
   const onSurfaceViewCreated = (surfaceHandle: string): void => {
     console.log('*** video surface created: ' + surfaceHandle);
     surfaceRef.current = surfaceHandle;
     setTimeout(() => startVideo(), 100);
-  }
+  };
 
   return (
     <View style={styles.playbackPage}>
-      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated}/>
-      <PlayerUI video={video} navigateBack={navigateBack} title={videoStream.title} adPlaylist={adPlaylist}/>
+      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} />
+      <PlayerUI video={video} navigateBack={navigateBack} title={videoStream.title} adPlaylist={adPlaylist} />
     </View>
   );
 }
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: '#606060',
-    alignItems: "stretch"
+    alignItems: 'stretch'
   },
   text: {
     fontSize: 30,
@@ -115,8 +116,8 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
     width: '100%',
-    height: '100%',
-  },
+    height: '100%'
+  }
 });
 
 export default PlaybackScreen;

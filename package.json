@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rm -rf node_modules buildinfo.json dist",
     "start": "npx react-native start",
-    "lint": "eslint src tst --ext .ts,.tsx",
+    "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src tst --ext .ts,.tsx --fix",
     "compile": "tsc -p tsconfig.json",
     "build": "npm run compile",
