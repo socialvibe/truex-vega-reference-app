@@ -14,9 +14,9 @@ import {
   timeLabel
 } from '../ads/AdBreak';
 
-const playW = 18;
+const playW = 30;
 const timelineW = 1300;
-const timelineH = 7;
+const timelineH = 14;
 const padding = 6;
 const gap = 10;
 const durationW = 90;
@@ -42,11 +42,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)'
   },
   controlBar: {
+    display: 'flex',
+    flexDirection: 'row',
     position: 'absolute',
     width: padding + playW + gap + timelineW + gap + durationW,
     height: timelineH + 2 * padding,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: padding
+    padding: padding,
   },
   playPauseButton: {
     verticalAlign: 'middle',
@@ -63,7 +65,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     width: timelineW,
     height: timelineH,
-    backgroundColor: '#555555'
+    backgroundColor: '#555555',
   },
   timelineProgress: {
     position: 'absolute',
@@ -92,9 +94,11 @@ const styles = StyleSheet.create({
     width: 4,
     height: '100%'
   },
-  currentTime: {
+  timeLabel: {
     color: 'white',
-    fontSize: 20,
+    fontSize: 20
+  },
+  currentTime: {
     textAlign: 'center',
     position: 'absolute',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -206,8 +210,8 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     const controlBar = styles.controlBar;
     return {
       ...controlBar,
-      top: (deviceWidth - controlBar.width) / 2,
-      bottom: deviceHeight - controlBar.height - 200
+      left: (deviceWidth - controlBar.width) / 2,
+      bottom: 200
     };
   }, [deviceWidth, deviceHeight]);
 
@@ -324,11 +328,11 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
               <View style={seekLayout} />
               <View style={styles.adMarkers}>{/* TODO */}</View>
               <View style={timeDisplayLayout}>
-                <Text>{timeLabel(timelineDisplayTime)}</Text>
+                <Text style={styles.timeLabel}>{timeLabel(timelineDisplayTime)}</Text>
               </View>
             </View>
             <View style={styles.duration}>
-              <Text>{timeLabel(durationToDisplay)}</Text>
+              <Text style={styles.timeLabel}>{timeLabel(durationToDisplay)}</Text>
             </View>
           </View>
         </View>
