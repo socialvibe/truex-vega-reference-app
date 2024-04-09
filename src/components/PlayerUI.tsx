@@ -8,8 +8,8 @@ import pauseIcon from '../assets/pause.png';
 import {
   AdBreak,
   getAdBreakAt,
-  getContentVideoTimeAt, getNextAdBreakAfter,
-  hasAdBreakAt,
+  getContentVideoTimeAt,
+  getNextAdBreakAfter,
   percentageSize,
   timeLabel
 } from '../ads/AdBreak';
@@ -148,7 +148,22 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   const [streamTime, setStreamTime] = useState(0);
   const [seekTarget, setSeekTarget] = useState(-1);
 
-  const isShowingAd = useMemo(() => hasAdBreakAt(streamTime, adPlaylist), [streamTime, adPlaylist]);
+  const contentDuration = useMemo(() => getContentVideoTimeAt(video.duration, adPlaylist), [video.duration, adPlaylist]);
+  const currAdBreak = useMemo(() => getAdBreakAt(streamTime, adPlaylist), [streamTime, adPlaylist]);
+  const currPlaybackTime = useMemo(() => getContentVideoTimeAt(streamTime, adPlaylist), [streamTime, adPlaylist]);
+  const currDisplayDuration = useMemo(
+    () => currAdBreak ? currAdBreak.duration : contentDuration,
+    [currAdBreak, contentDuration]);
+
+  const seekTo = useCallback(
+    (newTime: number) => {
+      const newTarget = Math.max(0, Math.min(newTime, video.duration));
+      console.log('*** seekTo: ' + timeLabel(newTarget));
+      setSeekTarget(newTarget);
+      video.currentTime = newTarget;
+    },
+    [video]
+  );
 
   const controlsDisplayTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>();
 
@@ -182,6 +197,23 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
     const onTimeUpdate = (event: any) => {
       const currTime = Math.floor(video.currentTime);
+      if (currTime == streamTime) return;
+      const adBreak = getAdBreakAt(currTime, adPlaylist);
+      if (adBreak) {
+        if (adBreak.completed) {
+          // We have played this ad break before. Skip over it
+          if (streamTime <= adBreak.startTime) {
+            seekTo(adBreak.endTime);
+          } else {
+            seekTo(adBreak.startTime);
+          }
+          return;
+        }
+        adBreak.started = true;
+        if (Math.abs(adBreak.endTime - currTime) < 2) {
+          adBreak.completed = true;
+        }
+      }
       setStreamTime(currTime);
       if (seekTarget >= 0 && Math.abs(seekTarget - currTime) <= 2) {
         // backup to ensure we know when seeking is complete
@@ -200,29 +232,15 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('seeked', onSeeked);
     };
-  }, [video, seekTarget]);
-
-  const durationToDisplay = useMemo(() => {
-    const adBreak = getAdBreakAt(streamTime, adPlaylist);
-    if (adBreak) {
-      // Show the duration of the ad instead.
-      return adBreak.duration;
-    }
-    return getContentVideoTimeAt(video.duration, true, adPlaylist);
-  }, [streamTime, video.duration, adPlaylist]);
-
-  const currentDisplayTime = useMemo(
-    () => getContentVideoTimeAt(streamTime, false, adPlaylist),
-    [streamTime, adPlaylist]
-  );
+  }, [video, adPlaylist, seekTarget, streamTime, seekTo]);
 
   const timelineDisplayTime = useMemo(() => {
     if (seekTarget >= 0) {
       // Show the seek target instead of the playback time.
-      return getContentVideoTimeAt(seekTarget, true, adPlaylist);
+      return getContentVideoTimeAt(seekTarget, adPlaylist);
     }
-    return currentDisplayTime;
-  }, [currentDisplayTime, adPlaylist, seekTarget]);
+    return getContentVideoTimeAt(streamTime, adPlaylist);
+  }, [streamTime, adPlaylist, seekTarget]);
 
   const controlBarLayout = useMemo(() => {
     const controlBar = styles.controlBar;
@@ -237,62 +255,63 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     const progressBar = styles.timelineProgress;
     return {
       ...progressBar,
-      width: percentageSize(timelineDisplayTime, durationToDisplay)
+      width: percentageSize(timelineDisplayTime, currDisplayDuration)
     };
-  }, [timelineDisplayTime, durationToDisplay]);
+  }, [timelineDisplayTime, currDisplayDuration]);
 
   const seekLayout = useMemo(() => {
-    const seekTargetDiff = Math.abs(currentDisplayTime - timelineDisplayTime);
-    const seekBarW = percentageSize(seekTargetDiff, durationToDisplay);
+    const minSeekTarget = currAdBreak ? currAdBreak.startTime : 0;
+    const maxSeekTarget = currAdBreak ? currAdBreak.endTime : video.duration;
+    // Stay within the current ad break or the overall video.
+    const constrainedTarget = Math.max(minSeekTarget, Math.min(maxSeekTarget, seekTarget));
+    const currTarget = getContentVideoTimeAt(constrainedTarget, adPlaylist);
+    const targetDiff = Math.abs(currTarget - currPlaybackTime);
+    const seekBarW = percentageSize(targetDiff, currDisplayDuration);
     let seekBarX;
-    if (currentDisplayTime <= timelineDisplayTime) {
-      seekBarX = percentageSize(currentDisplayTime, durationToDisplay);
+    if (currPlaybackTime <= constrainedTarget) {
+      seekBarX = percentageSize(currPlaybackTime, currDisplayDuration);
     } else {
-      seekBarX = percentageSize(currentDisplayTime - seekTargetDiff, durationToDisplay);
+      seekBarX = percentageSize(currPlaybackTime - targetDiff, currDisplayDuration);
     }
     return {
       ...styles.timelineSeek,
       width: seekBarW,
       left: seekBarX
     };
-  }, [currentDisplayTime, timelineDisplayTime, durationToDisplay]);
+  }, [currAdBreak, video.duration, currDisplayDuration, currPlaybackTime, seekTarget, adPlaylist]);
 
   const timeDisplayLayout = useMemo(() => {
     return {
       ...styles.currentTime,
-      left: percentageSize(timelineDisplayTime, durationToDisplay)
+      left: percentageSize(timelineDisplayTime, currDisplayDuration)
     };
-  }, [timelineDisplayTime, durationToDisplay]);
-
-  const seekTo = useCallback(
-    (newTime: number) => {
-      const newTarget = Math.max(0, Math.min(newTime, video.duration));
-      console.log('*** seekTo: ' + timeLabel(newTarget));
-      setSeekTarget(newTarget);
-      video.currentTime = newTarget;
-    },
-    [video]
-  );
+  }, [timelineDisplayTime, currDisplayDuration]);
 
   const seekStep = useCallback(
     (steps: number) => {
-      if (disableSeeksInAds && isShowingAd) return;
+      if (disableSeeksInAds && currAdBreak) return;
+
+      const nextAdBreak = getNextAdBreakAfter(streamTime, adPlaylist);
       const minStepSeconds = 10;
       const maxSeekSteps = 70; // ensure seek stepping has reasonable progress even on long videos.
-      const stepSeconds =
-        durationToDisplay > 0 ? Math.max(minStepSeconds, durationToDisplay / maxSeekSteps) : minStepSeconds;
-      let newTarget = streamTime + steps * stepSeconds;
+      const stepSeconds = currDisplayDuration > 0 ? Math.max(minStepSeconds, currDisplayDuration / maxSeekSteps) : minStepSeconds;
 
-      const currentAdBreak = getAdBreakAt(streamTime, adPlaylist);
-      const nextAdBreak = getNextAdBreakAfter(streamTime, adPlaylist);
-      if (!currentAdBreak && nextAdBreak && nextAdBreak.startTime < newTarget) {
-        // We are skipping over an ad break. Seek to the ad break instead.
-        newTarget = nextAdBreak.startTime;
+      let newTarget = Math.max(0, streamTime + steps * stepSeconds);
+
+      if (!currAdBreak) {
+        const targetAdBreak = getAdBreakAt(newTarget, adPlaylist);
+        if (nextAdBreak && nextAdBreak.startTime < newTarget) {
+          // We are skipping over an ad break. Seek to the ad break instead.
+          newTarget = nextAdBreak.startTime;
+        } else if (targetAdBreak && targetAdBreak.startTime <= newTarget) {
+          // We are landing in a previous ad break. Skip over it.
+          newTarget = targetAdBreak.endTime;
+        }
       }
 
       seekTo(newTarget);
     },
-    [adPlaylist, streamTime, durationToDisplay, seekTo, isShowingAd]
+    [adPlaylist, streamTime, currAdBreak, currDisplayDuration, seekTo]
   );
 
   function play() {
@@ -356,7 +375,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
             </View>
             <View style={styles.timeline}>
               <View style={progressBarLayout} />
-              <View style={seekLayout} />
+              {seekTarget >= 0 && <View style={seekLayout} />}
               <View style={styles.adMarkers}>{/* TODO */}</View>
               <View style={timeDisplayLayout}>
                 <Text style={[styles.timeLabel, styles.currentTimeOffset]}>
@@ -365,12 +384,12 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
               </View>
             </View>
             <View style={styles.duration}>
-              <Text style={styles.timeLabel}>{timeLabel(durationToDisplay)}</Text>
+              <Text style={styles.timeLabel}>{timeLabel(currDisplayDuration)}</Text>
             </View>
           </View>
         </View>
       )}
-      {isShowingAd && (
+      {currAdBreak && (
         <View style={styles.adIndicator}>
           <Text style={styles.adLabel}>Ad</Text>
         </View>

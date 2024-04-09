@@ -72,7 +72,7 @@ export function hasAdBreakAt(rawVideoTime: number, adPlaylist: AdBreak[]) {
   return !!adBreak;
 }
 
-export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[], useNextAdBreak = false) {
+export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[]) {
   if (adPlaylist) {
     for (const index in adPlaylist) {
       const adBreak = adPlaylist[index];
@@ -88,7 +88,7 @@ export function getNextAdBreakAfter(streamTime: number, adPlaylist: AdBreak[]) {
   if (adPlaylist) {
     for (const index in adPlaylist) {
       const adBreak = adPlaylist[index];
-      if (adBreak.endTime <= streamTime) continue; // ad break is before
+      if (adBreak.endTime < streamTime) continue; // ad break is before
       if (streamTime <= adBreak.startTime) return adBreak;
     }
   }
@@ -96,12 +96,12 @@ export function getNextAdBreakAfter(streamTime: number, adPlaylist: AdBreak[]) {
 }
 
 // We assume ad videos are stitched into the main video.
-export function getContentVideoTimeAt(streamTime: number, skipAds: boolean, adPlaylist: AdBreak[]) {
+export function getContentVideoTimeAt(streamTime: number, adPlaylist: AdBreak[]) {
   let result = streamTime;
   for (const index in adPlaylist) {
     const adBreak = adPlaylist[index];
     if (streamTime < adBreak.startTime) break; // future ads don't affect things
-    if (!skipAds && adBreak.startTime <= streamTime && streamTime < adBreak.endTime) {
+    if (adBreak.startTime <= streamTime && streamTime <= adBreak.endTime) {
       // We are within the ad, show the ad time.
       return streamTime - adBreak.startTime;
     } else if (adBreak.endTime <= streamTime) {
@@ -113,7 +113,7 @@ export function getContentVideoTimeAt(streamTime: number, skipAds: boolean, adPl
 }
 
 export function timeDebugDisplay(streamTime: number, adPlaylist: AdBreak[]) {
-  const displayTime = getContentVideoTimeAt(streamTime, true, adPlaylist);
+  const displayTime = getContentVideoTimeAt(streamTime, adPlaylist);
   return `${timeLabel(displayTime)} (raw: ${timeLabel(streamTime)})`;
 }
 
