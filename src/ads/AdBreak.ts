@@ -76,7 +76,7 @@ export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[]) {
   if (adPlaylist) {
     for (const index in adPlaylist) {
       const adBreak = adPlaylist[index];
-      if (adBreak.startTime <= streamTime && streamTime < adBreak.endTime) {
+      if (adBreak.startTime <= streamTime && streamTime <= adBreak.endTime) {
         return adBreak;
       }
     }
@@ -84,12 +84,12 @@ export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[]) {
   return undefined;
 }
 
-export function getNextAdBreakAfter(streamTime: number, adPlaylist: AdBreak[]) {
+export function getNextAvailableAdBreak(streamTime: number, adPlaylist: AdBreak[]) {
   if (adPlaylist) {
     for (const index in adPlaylist) {
       const adBreak = adPlaylist[index];
       if (adBreak.endTime < streamTime) continue; // ad break is before
-      if (streamTime <= adBreak.startTime) return adBreak;
+      if (streamTime <= adBreak.startTime && !adBreak.completed) return adBreak;
     }
   }
   return undefined;

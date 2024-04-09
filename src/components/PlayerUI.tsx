@@ -9,7 +9,7 @@ import {
   AdBreak,
   getAdBreakAt,
   getContentVideoTimeAt,
-  getNextAdBreakAfter,
+  getNextAvailableAdBreak,
   percentageSize,
   timeLabel
 } from '../ads/AdBreak';
@@ -203,7 +203,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
         if (adBreak.completed) {
           // We have played this ad break before. Skip over it
           if (streamTime <= adBreak.startTime) {
-            seekTo(adBreak.endTime);
+            seekTo(adBreak.endTime+1);
           } else {
             seekTo(adBreak.startTime);
           }
@@ -291,7 +291,6 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     (steps: number) => {
       if (disableSeeksInAds && currAdBreak) return;
 
-      const nextAdBreak = getNextAdBreakAfter(streamTime, adPlaylist);
       const minStepSeconds = 10;
       const maxSeekSteps = 70; // ensure seek stepping has reasonable progress even on long videos.
       const stepSeconds = currDisplayDuration > 0 ? Math.max(minStepSeconds, currDisplayDuration / maxSeekSteps) : minStepSeconds;
@@ -299,13 +298,14 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       let newTarget = Math.max(0, streamTime + steps * stepSeconds);
 
       if (!currAdBreak) {
+        const nextAdBreak = getNextAvailableAdBreak(streamTime, adPlaylist);
         const targetAdBreak = getAdBreakAt(newTarget, adPlaylist);
-        if (nextAdBreak && nextAdBreak.startTime < newTarget) {
+        if (nextAdBreak && nextAdBreak.startTime <= newTarget) {
           // We are skipping over an ad break. Seek to the ad break instead.
           newTarget = nextAdBreak.startTime;
-        } else if (targetAdBreak && targetAdBreak.startTime <= newTarget) {
+        } else if (targetAdBreak) {
           // We are landing in a previous ad break. Skip over it.
-          newTarget = targetAdBreak.endTime;
+          newTarget = targetAdBreak.endTime+1;
         }
       }
 
