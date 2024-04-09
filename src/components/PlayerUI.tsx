@@ -24,7 +24,6 @@ const playSize = 28;
 const padding = 8;
 const gap = 10;
 const timeDisplayW = 90;
-const controlBarW = padding + playSize + gap + timelineW + gap + timeDisplayW;
 const controlBarH = playSize + 2 * padding;
 
 const styles = StyleSheet.create({
@@ -51,16 +50,13 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     verticalAlign: 'middle',
-    position: 'absolute',
-    width: controlBarW,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    marginTop: 'auto',
+    marginBottom: 240,
     height: controlBarH,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     padding: padding
-  },
-  playPauseButton: {
-    verticalAlign: 'middle',
-    width: playSize,
-    height: controlBarH
   },
   playPauseIcon: {
     width: playSize,
@@ -69,7 +65,7 @@ const styles = StyleSheet.create({
   timeline: {
     verticalAlign: 'middle',
     position: 'relative',
-    marginLeft: 10,
+    marginLeft: gap,
     marginTop: 'auto',
     marginBottom: 'auto',
     width: timelineW,
@@ -297,15 +293,6 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     };
   }, [video, currAdBreak, adPlaylist, seekTarget, seekTo]);
 
-  const controlBarLayout = useMemo(() => {
-    const controlBar = styles.controlBar;
-    return {
-      ...controlBar,
-      left: (deviceWidth - controlBar.width) / 2,
-      bottom: 240
-    };
-  }, [deviceWidth]);
-
   const progressBarLayout = useMemo(() => {
     const progressBar = styles.timelineProgress;
     return {
@@ -443,10 +430,8 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     <>
       {isShowingControls && (
         <View style={styles.playbackContainer}>
-          <View style={controlBarLayout}>
-            <View style={styles.playPauseButton}>
-              <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon} />
-            </View>
+          <View style={styles.controlBar}>
+            <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon} />
             <View style={styles.timeline}>
               <View style={progressBarLayout} />
               {seekLayout.width > 0 && <View style={seekLayout} />}
