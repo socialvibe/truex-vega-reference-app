@@ -6,7 +6,7 @@ import { KeplerVideoSurfaceView, VideoPlayer } from '@amzn/react-native-w3cmedia
 import { BackHandler, Platform } from '@amzn/react-native-kepler';
 import PlayerUI from './components/PlayerUI';
 
-import videoStream from './data/video-streams.json';
+import videoStream from './data/video-stream.json';
 
 import { getAdPlaylist } from './ads/AdBreak';
 
@@ -59,10 +59,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     }
     console.log('*** playback page mounted');
 
-    if (Platform.isTV) {
-      BackHandler.addEventListener('hardwareBackPress', navigateBack);
-    }
-
     video.initialize().then(() => {
       console.log('*** video initialized');
       video.autoplay = false;
@@ -77,9 +73,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
     return () => {
       console.log('*** playback page unmounted');
-      if (Platform.isTV) {
-        BackHandler.removeEventListener('hardwareBackPress', navigateBack);
-      }
     };
   }, [video, navigateBack, startVideo]);
 

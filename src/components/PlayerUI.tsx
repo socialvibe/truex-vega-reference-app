@@ -7,12 +7,14 @@ import playIcon from '../assets/play.png';
 import pauseIcon from '../assets/pause.png';
 import {
   AdBreak,
-  getContentVideoTimeAt,
-  getVideoDurationAt,
+  getAdBreakAt,
+  getContentVideoTimeAt, getNextAdBreakAfter,
   hasAdBreakAt,
   percentageSize,
   timeLabel
 } from '../ads/AdBreak';
+
+const disableSeeksInAds = false; // set to true for final version
 
 const timelineW = 1480;
 const timelineH = 20;
@@ -51,7 +53,7 @@ const styles = StyleSheet.create({
     width: controlBarW,
     height: controlBarH,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: padding,
+    padding: padding
   },
   playPauseButton: {
     verticalAlign: 'middle',
@@ -70,7 +72,7 @@ const styles = StyleSheet.create({
     marginBottom: 'auto',
     width: timelineW,
     height: timelineH,
-    backgroundColor: '#555555',
+    backgroundColor: '#555555'
   },
   timelineProgress: {
     position: 'absolute',
@@ -113,8 +115,8 @@ const styles = StyleSheet.create({
     width: timeDisplayW,
     height: 25,
     bottom: '100%',
-    left: 0, // tbd: center this better
-    marginLeft: -timeDisplayW/2,
+    left: 0,
+    marginLeft: -timeDisplayW / 2,
     marginBottom: 8
   },
   currentTimeOffset: {
@@ -139,7 +141,7 @@ interface PlayerUIProps {
 
 export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIProps) {
   // Get the full screen resolution
-  const { width: deviceWidth, height: deviceHeight } = useWindowDimensions();
+  const { width: deviceWidth } = useWindowDimensions();
 
   const [isPlaying, setPlaying] = useState(!video.paused);
   const [isShowingControls, setIsShowingControls] = useState(false);
@@ -173,7 +175,6 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     return () => stopControlsDisplayTimer();
   }, [showControls]);
 
-
   useEffect(() => {
     const onPlaying = () => setPlaying(true);
     const onPaused = () => setPlaying(false);
@@ -201,10 +202,14 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     };
   }, [video, seekTarget]);
 
-  const durationToDisplay = useMemo(
-    () => getVideoDurationAt(streamTime, video.duration, adPlaylist),
-    [streamTime, video.duration, adPlaylist]
-  );
+  const durationToDisplay = useMemo(() => {
+    const adBreak = getAdBreakAt(streamTime, adPlaylist);
+    if (adBreak) {
+      // Show the duration of the ad instead.
+      return adBreak.duration;
+    }
+    return getContentVideoTimeAt(video.duration, true, adPlaylist);
+  }, [streamTime, video.duration, adPlaylist]);
 
   const currentDisplayTime = useMemo(
     () => getContentVideoTimeAt(streamTime, false, adPlaylist),
@@ -270,11 +275,24 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   );
 
   const seekStep = useCallback(
-    (seekSeconds: number) => {
-      //if (isShowingAd) return; // prevent user seeks during an ad
-      seekTo(video.currentTime + seekSeconds);
+    (steps: number) => {
+      if (disableSeeksInAds && isShowingAd) return;
+      const minStepSeconds = 10;
+      const maxSeekSteps = 70; // ensure seek stepping has reasonable progress even on long videos.
+      const stepSeconds =
+        durationToDisplay > 0 ? Math.max(minStepSeconds, durationToDisplay / maxSeekSteps) : minStepSeconds;
+      let newTarget = streamTime + steps * stepSeconds;
+
+      const currentAdBreak = getAdBreakAt(streamTime, adPlaylist);
+      const nextAdBreak = getNextAdBreakAfter(streamTime, adPlaylist);
+      if (!currentAdBreak && nextAdBreak && nextAdBreak.startTime < newTarget) {
+        // We are skipping over an ad break. Seek to the ad break instead.
+        newTarget = nextAdBreak.startTime;
+      }
+
+      seekTo(newTarget);
     },
-    [video, seekTo/*, isShowingAd */]
+    [adPlaylist, streamTime, durationToDisplay, seekTo, isShowingAd]
   );
 
   function play() {
@@ -315,13 +333,13 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
       case 'skip_forward':
       case 'right':
-        seekStep(10);
+        seekStep(1);
         showControls(true);
         break;
 
       case 'skip_backward':
       case 'left':
-        seekStep(-10);
+        seekStep(-1);
         showControls(true);
         break;
     }
@@ -341,7 +359,9 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
               <View style={seekLayout} />
               <View style={styles.adMarkers}>{/* TODO */}</View>
               <View style={timeDisplayLayout}>
-                <Text style={[styles.timeLabel, styles.currentTimeOffset]}>{timeLabel(timelineDisplayTime)}</Text>
+                <Text style={[styles.timeLabel, styles.currentTimeOffset]}>
+                  {timeLabel(timelineDisplayTime)}
+                </Text>
               </View>
             </View>
             <View style={styles.duration}>

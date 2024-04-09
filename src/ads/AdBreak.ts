@@ -72,13 +72,24 @@ export function hasAdBreakAt(rawVideoTime: number, adPlaylist: AdBreak[]) {
   return !!adBreak;
 }
 
-export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[]) {
+export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[], useNextAdBreak = false) {
   if (adPlaylist) {
     for (const index in adPlaylist) {
       const adBreak = adPlaylist[index];
       if (adBreak.startTime <= streamTime && streamTime < adBreak.endTime) {
         return adBreak;
       }
+    }
+  }
+  return undefined;
+}
+
+export function getNextAdBreakAfter(streamTime: number, adPlaylist: AdBreak[]) {
+  if (adPlaylist) {
+    for (const index in adPlaylist) {
+      const adBreak = adPlaylist[index];
+      if (adBreak.endTime <= streamTime) continue; // ad break is before
+      if (streamTime <= adBreak.startTime) return adBreak;
     }
   }
   return undefined;
@@ -99,14 +110,6 @@ export function getContentVideoTimeAt(streamTime: number, skipAds: boolean, adPl
     }
   }
   return result;
-}
-
-export function getVideoDurationAt(streamTime: number, duration: number, adPlaylist: AdBreak[]) {
-  const adBreak = getAdBreakAt(streamTime, adPlaylist);
-  if (adBreak) {
-    return adBreak.duration;
-  }
-  return getContentVideoTimeAt(duration, true, adPlaylist);
 }
 
 export function timeDebugDisplay(streamTime: number, adPlaylist: AdBreak[]) {
