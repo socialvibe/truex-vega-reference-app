@@ -15,7 +15,7 @@ import {
   timeLabel
 } from '../ads/AdBreak';
 
-const disableSeeksInAds = false; // set to true for final version
+const disableSeeksInAds = false; // enable for demo purposes, set to true normally
 const debugVideoTime = false;
 
 const timelineW = 1480;
