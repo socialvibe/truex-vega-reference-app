@@ -66,6 +66,8 @@ const styles = StyleSheet.create({
     verticalAlign: 'middle',
     position: 'relative',
     marginLeft: 10,
+    marginTop: 'auto',
+    marginBottom: 'auto',
     width: timelineW,
     height: timelineH,
     backgroundColor: '#555555',
@@ -113,7 +115,7 @@ const styles = StyleSheet.create({
     bottom: '100%',
     left: 0, // tbd: center this better
     marginLeft: -timeDisplayW/2,
-    marginBottom: 4
+    marginBottom: 8
   },
   currentTimeOffset: {
     marginBottom: 5
