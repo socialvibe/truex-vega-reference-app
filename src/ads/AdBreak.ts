@@ -13,7 +13,7 @@ export class AdBreak {
   public completed: boolean;
 
   // The main video time the ad break is to be shown
-  public displayTimeOffset: number;
+  public contentTime: number;
 
   // The raw video timestamps are filled in when the ad playlist is set in the video controller.
   public startTime: number;
@@ -28,9 +28,13 @@ export class AdBreak {
     this.started = false;
     this.completed = false;
 
-    this.displayTimeOffset = parseTimeLabel(vmapJson.timeOffset);
+    this.contentTime = parseTimeLabel(vmapJson.timeOffset);
     this.startTime = 0;
     this.endTime = 0;
+  }
+
+  includesTime(streamTime: number): boolean {
+    return this.startTime <= streamTime && streamTime <= this.endTime;
   }
 }
 
@@ -59,7 +63,7 @@ export function getAdPlaylist(vmap: object[]) {
   // Correct ad display times into raw video times for the actual time in the overall video.
   let totalAdsDuration = 0;
   adPlaylist.forEach(adBreak => {
-    adBreak.startTime = adBreak.displayTimeOffset + totalAdsDuration;
+    adBreak.startTime = adBreak.contentTime + totalAdsDuration;
     adBreak.endTime = adBreak.startTime + adBreak.duration;
     totalAdsDuration += adBreak.duration;
   });
@@ -89,32 +93,44 @@ export function getNextAvailableAdBreak(streamTime: number, adPlaylist: AdBreak[
     for (const index in adPlaylist) {
       const adBreak = adPlaylist[index];
       if (adBreak.endTime < streamTime) continue; // ad break is before
-      if (streamTime <= adBreak.startTime && !adBreak.completed) return adBreak;
+      if (streamTime <= adBreak.startTime) return adBreak;
     }
   }
   return undefined;
 }
 
 // We assume ad videos are stitched into the main video.
-export function getContentVideoTimeAt(streamTime: number, adPlaylist: AdBreak[]) {
+export function getVideoContentTimeAt(streamTime: number, adPlaylist: AdBreak[]): number {
   let result = streamTime;
-  for (const index in adPlaylist) {
-    const adBreak = adPlaylist[index];
-    if (streamTime < adBreak.startTime) break; // future ads don't affect things
-    if (adBreak.startTime <= streamTime && streamTime <= adBreak.endTime) {
-      // We are within the ad, show the ad time.
-      return streamTime - adBreak.startTime;
-    } else if (adBreak.endTime <= streamTime) {
-      // Discount the ad duration.
-      result -= adBreak.duration;
+  if (adPlaylist) {
+    for (const index in adPlaylist) {
+      const adBreak = adPlaylist[index];
+      if (streamTime < adBreak.startTime) break; // future ads don't affect things
+      if (adBreak.startTime <= streamTime && streamTime <= adBreak.endTime) {
+        // We are within the ad, show the ad time.
+        return streamTime - adBreak.startTime;
+      } else if (adBreak.endTime <= streamTime) {
+        // Discount the ad duration.
+        result -= adBreak.duration;
+      }
     }
   }
   return result;
 }
 
-export function timeDebugDisplay(streamTime: number, adPlaylist: AdBreak[]) {
-  const displayTime = getContentVideoTimeAt(streamTime, adPlaylist);
-  return `${timeLabel(displayTime)} (raw: ${timeLabel(streamTime)})`;
+export function getVideoStreamTimeAt(contentTime: number, adPlaylist: AdBreak[]): number {
+  let result = contentTime;
+  if (adPlaylist) {
+    for (const index in adPlaylist) {
+      const adBreak = adPlaylist[index];
+      if (contentTime < adBreak.contentTime) break; // future ads don't affect things
+      if (adBreak.contentTime < contentTime) {
+        //The previous ad's duration is included in the stream time.
+        result += adBreak.duration;
+      }
+    }
+  }
+  return result;
 }
 
 export function timeLabel(time: number): string {
@@ -136,7 +152,7 @@ export function pad(value: number): string {
   return value < 10 ? '0' + value : value.toString();
 }
 
-export function percentageSize(time: number, duration: number): `${number}%` {
-  const result = duration > 0 ? (time / duration) * 100 : 0;
-  return `${result}%`;
+export function timeDebug(streamTime: number, adPlaylist: AdBreak[]) {
+  const displayTime = getVideoContentTimeAt(streamTime, adPlaylist);
+  return `${timeLabel(displayTime)} [${timeLabel(streamTime)}]`;
 }
