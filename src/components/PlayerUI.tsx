@@ -157,14 +157,13 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     }
   }
 
-  function showControls(show: boolean, useTimeout = true) {
+  const showControls = useCallback((show: boolean, useTimeout = true) => {
     stopControlsDisplayTimer();
     setIsShowingControls(show);
     if (show && useTimeout) {
       controlsDisplayTimerRef.current = setTimeout(() => showControls(false), 5 * 1000);
     }
-  }
-
+  }, []);
 
   useEffect(() => {
     // Show controls initially.
@@ -172,7 +171,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
     // Ensure timer is cleaned up.
     return () => stopControlsDisplayTimer();
-  }, [video]);
+  }, [showControls]);
 
 
   useEffect(() => {
@@ -227,7 +226,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       left: (deviceWidth - controlBar.width) / 2,
       bottom: 240
     };
-  }, [deviceWidth, deviceHeight]);
+  }, [deviceWidth]);
 
   const progressBarLayout = useMemo(() => {
     const progressBar = styles.timelineProgress;
