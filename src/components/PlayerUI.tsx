@@ -145,12 +145,12 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
   const [isPlaying, setPlaying] = useState(!video.paused);
   const [isShowingControls, setIsShowingControls] = useState(false);
-  const [streamTime, setStreamTime] = useState(0);
   const [seekTarget, setSeekTarget] = useState(-1);
 
+  const [currStreamTime, setCurrStreamTime] = useState(0);
   const contentDuration = useMemo(() => getContentVideoTimeAt(video.duration, adPlaylist), [video.duration, adPlaylist]);
-  const currAdBreak = useMemo(() => getAdBreakAt(streamTime, adPlaylist), [streamTime, adPlaylist]);
-  const currPlaybackTime = useMemo(() => getContentVideoTimeAt(streamTime, adPlaylist), [streamTime, adPlaylist]);
+  const [currAdBreak, setCurrAdBreak] = useState<AdBreak|undefined>();
+  const currContentTime = useMemo(() => getContentVideoTimeAt(currStreamTime, adPlaylist), [currStreamTime, adPlaylist]);
   const currDisplayDuration = useMemo(
     () => currAdBreak ? currAdBreak.duration : contentDuration,
     [currAdBreak, contentDuration]);
@@ -196,26 +196,36 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     const onSeeked = () => setSeekTarget(-1); // does not seem to fire in the simulator
 
     const onTimeUpdate = (event: any) => {
-      const currTime = Math.floor(video.currentTime);
-      if (currTime == streamTime) return;
-      const adBreak = getAdBreakAt(currTime, adPlaylist);
-      if (adBreak) {
-        if (adBreak.completed) {
-          // We have played this ad break before. Skip over it
-          if (streamTime <= adBreak.startTime) {
-            seekTo(adBreak.endTime+1);
-          } else {
-            seekTo(adBreak.startTime);
+      const newStreamTime = Math.floor(video.currentTime);
+      let newSeekTarget = seekTarget;
+      setCurrStreamTime(prevStreamTime => {
+        if (prevStreamTime == newStreamTime) return prevStreamTime;
+
+        const adBreak = getAdBreakAt(newStreamTime, adPlaylist);
+        if (adBreak) {
+          if (adBreak.completed) {
+            // We have played this ad break before. Skip over it
+            if (prevStreamTime <= adBreak.startTime) {
+              newSeekTarget = adBreak.endTime + 1;
+            } else {
+              newSeekTarget = adBreak.startTime;
+            }
           }
-          return;
+          adBreak.started = true;
+          setCurrAdBreak(adBreak);
+          if (Math.abs(adBreak.endTime - newStreamTime) < 2) {
+            adBreak.completed = true;
+          }
+        } else {
+          setCurrAdBreak(undefined);
         }
-        adBreak.started = true;
-        if (Math.abs(adBreak.endTime - currTime) < 2) {
-          adBreak.completed = true;
-        }
-      }
-      setStreamTime(currTime);
-      if (seekTarget >= 0 && Math.abs(seekTarget - currTime) <= 2) {
+        return newStreamTime;
+      });
+
+      // Process any seek changes.
+      if (newSeekTarget != seekTarget) {
+        seekTo(newSeekTarget);
+      } else if (seekTarget >= 0 && Math.abs(seekTarget - newStreamTime) <= 2) {
         // backup to ensure we know when seeking is complete
         setSeekTarget(-1);
       }
@@ -232,15 +242,15 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('seeked', onSeeked);
     };
-  }, [video, adPlaylist, seekTarget, streamTime, seekTo]);
+  }, [video, adPlaylist, seekTarget, seekTo]);
 
   const timelineDisplayTime = useMemo(() => {
     if (seekTarget >= 0) {
       // Show the seek target instead of the playback time.
       return getContentVideoTimeAt(seekTarget, adPlaylist);
     }
-    return getContentVideoTimeAt(streamTime, adPlaylist);
-  }, [streamTime, adPlaylist, seekTarget]);
+    return getContentVideoTimeAt(currStreamTime, adPlaylist);
+  }, [currStreamTime, adPlaylist, seekTarget]);
 
   const controlBarLayout = useMemo(() => {
     const controlBar = styles.controlBar;
@@ -265,20 +275,20 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     // Stay within the current ad break or the overall video.
     const constrainedTarget = Math.max(minSeekTarget, Math.min(maxSeekTarget, seekTarget));
     const currTarget = getContentVideoTimeAt(constrainedTarget, adPlaylist);
-    const targetDiff = Math.abs(currTarget - currPlaybackTime);
+    const targetDiff = Math.abs(currTarget - currContentTime);
     const seekBarW = percentageSize(targetDiff, currDisplayDuration);
     let seekBarX;
-    if (currPlaybackTime <= constrainedTarget) {
-      seekBarX = percentageSize(currPlaybackTime, currDisplayDuration);
+    if (currContentTime <= constrainedTarget) {
+      seekBarX = percentageSize(currContentTime, currDisplayDuration);
     } else {
-      seekBarX = percentageSize(currPlaybackTime - targetDiff, currDisplayDuration);
+      seekBarX = percentageSize(currContentTime - targetDiff, currDisplayDuration);
     }
     return {
       ...styles.timelineSeek,
       width: seekBarW,
       left: seekBarX
     };
-  }, [currAdBreak, video.duration, currDisplayDuration, currPlaybackTime, seekTarget, adPlaylist]);
+  }, [currAdBreak, video.duration, currDisplayDuration, currContentTime, seekTarget, adPlaylist]);
 
   const timeDisplayLayout = useMemo(() => {
     return {
@@ -295,10 +305,10 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       const maxSeekSteps = 70; // ensure seek stepping has reasonable progress even on long videos.
       const stepSeconds = currDisplayDuration > 0 ? Math.max(minStepSeconds, currDisplayDuration / maxSeekSteps) : minStepSeconds;
 
-      let newTarget = Math.max(0, streamTime + steps * stepSeconds);
+      let newTarget = Math.max(0, currStreamTime + steps * stepSeconds);
 
       if (!currAdBreak) {
-        const nextAdBreak = getNextAvailableAdBreak(streamTime, adPlaylist);
+        const nextAdBreak = getNextAvailableAdBreak(currStreamTime, adPlaylist);
         const targetAdBreak = getAdBreakAt(newTarget, adPlaylist);
         if (nextAdBreak && nextAdBreak.startTime <= newTarget) {
           // We are skipping over an ad break. Seek to the ad break instead.
@@ -311,7 +321,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
       seekTo(newTarget);
     },
-    [adPlaylist, streamTime, currAdBreak, currDisplayDuration, seekTo]
+    [adPlaylist, currStreamTime, currAdBreak, currDisplayDuration, seekTo]
   );
 
   function play() {
