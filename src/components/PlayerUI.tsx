@@ -217,9 +217,12 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     // Show controls initially.
     showControls(true);
 
+    // Ensure the preroll ad break is known as soon as possible.
+    setCurrAdBreak(getAdBreakAt(0, adPlaylist));
+
     // Ensure timer is cleaned up.
     return () => stopControlsDisplayTimer();
-  }, [showControls]);
+  }, [showControls, adPlaylist]);
 
   useEffect(() => {
     const onPlaying = () => setPlaying(true);
