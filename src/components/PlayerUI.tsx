@@ -14,12 +14,14 @@ import {
   timeLabel
 } from '../ads/AdBreak';
 
-const playW = 30;
-const timelineW = 1300;
-const timelineH = 14;
-const padding = 6;
+const timelineW = 1480;
+const timelineH = 20;
+const playSize = 28;
+const padding = 8;
 const gap = 10;
-const durationW = 90;
+const timeDisplayW = 90;
+const controlBarW = padding + playSize + gap + timelineW + gap + timeDisplayW;
+const controlBarH = playSize + 2 * padding;
 
 const styles = StyleSheet.create({
   playbackContainer: {
@@ -44,20 +46,21 @@ const styles = StyleSheet.create({
   controlBar: {
     display: 'flex',
     flexDirection: 'row',
+    verticalAlign: 'middle',
     position: 'absolute',
-    width: padding + playW + gap + timelineW + gap + durationW,
-    height: timelineH + 2 * padding,
+    width: controlBarW,
+    height: controlBarH,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     padding: padding,
   },
   playPauseButton: {
     verticalAlign: 'middle',
-    width: playW,
-    height: 26
+    width: playSize,
+    height: controlBarH
   },
   playPauseIcon: {
-    width: playW,
-    height: playW
+    width: playSize,
+    height: playSize
   },
   timeline: {
     verticalAlign: 'middle',
@@ -96,27 +99,32 @@ const styles = StyleSheet.create({
   },
   timeLabel: {
     color: 'white',
-    fontSize: 20
+    fontSize: 20,
+    marginLeft: 'auto',
+    marginRight: 'auto'
   },
   currentTime: {
     textAlign: 'center',
     position: 'absolute',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    width: 'auto',
     padding: padding,
+    width: timeDisplayW,
     height: 25,
-    top: -34,
-    left: -20 // tbd: center this better
-    //transform: translateX(-50%)
+    bottom: '100%',
+    left: 0, // tbd: center this better
+    marginLeft: -timeDisplayW/2,
+    marginBottom: 4
+  },
+  currentTimeOffset: {
+    marginBottom: 5
   },
   duration: {
-    color: 'white',
-    fontSize: 20,
     verticalAlign: 'middle',
     marginLeft: gap,
-    textAlign: 'left',
-    height: timelineH,
-    lineHeight: timelineH
+    textAlign: 'center',
+    width: timeDisplayW,
+    height: controlBarH,
+    lineHeight: controlBarH
   }
 });
 
@@ -211,7 +219,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     return {
       ...controlBar,
       left: (deviceWidth - controlBar.width) / 2,
-      bottom: 200
+      bottom: 240
     };
   }, [deviceWidth, deviceHeight]);
 
@@ -328,7 +336,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
               <View style={seekLayout} />
               <View style={styles.adMarkers}>{/* TODO */}</View>
               <View style={timeDisplayLayout}>
-                <Text style={styles.timeLabel}>{timeLabel(timelineDisplayTime)}</Text>
+                <Text style={[styles.timeLabel, styles.currentTimeOffset]}>{timeLabel(timelineDisplayTime)}</Text>
               </View>
             </View>
             <View style={styles.duration}>
