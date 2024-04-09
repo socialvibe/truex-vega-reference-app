@@ -6,9 +6,7 @@ import { StackScreenProps } from '@amzn/react-navigation__stack';
 
 export function HomeScreen({ navigation, route }: StackScreenProps<any>) {
   function repeatRender(count: number, callback: (index: number) => React.ReactNode) {
-    return Array(count)
-      .fill(null)
-      .map((value, index) => callback(index));
+    return Array(count).fill(null).map((value, index) => callback(index));
   }
 
   useEffect(() => {
