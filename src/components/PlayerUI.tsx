@@ -135,7 +135,8 @@ const styles = StyleSheet.create({
 });
 
 function percentageSize(time: number, duration: number): `${number}%` {
-  const result = duration > 0 ? (time / duration) * 100 : 0;
+  // Try to stick to 2 decimal places of precision.
+  const result = duration > 0 ? (Math.floor((time / duration) * 10000) / 100) : 0;
   return `${result}%`;
 }
 
@@ -300,6 +301,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   }, [timelineDisplayTime, currDisplayDuration]);
 
   const seekLayout = useMemo(() => {
+    if (!(seekTarget >= 0)) return; // skip styling unless there is a seek target
     const minSeekTarget = currAdBreak ? currAdBreak.startTime : 0;
     const maxSeekTarget = currAdBreak ? currAdBreak.endTime : video.duration;
     // Stay within the current ad break or the overall video.
@@ -308,11 +310,12 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     const targetDiff = Math.abs(currTarget - currContentTime);
     const seekBarW = percentageSize(targetDiff, currDisplayDuration);
     let seekBarX;
-    if (currContentTime <= constrainedTarget) {
+    if (currContentTime <= currTarget) {
       seekBarX = percentageSize(currContentTime, currDisplayDuration);
     } else {
       seekBarX = percentageSize(currContentTime - targetDiff, currDisplayDuration);
     }
+    console.log(`*** seekLayout from ${timeLabel(currContentTime)} to ${timeLabel(currTarget)}: x ${seekBarX} w ${seekBarW} diff ${timeLabel(targetDiff)}`);
     return {
       ...styles.timelineSeek,
       width: seekBarW,
