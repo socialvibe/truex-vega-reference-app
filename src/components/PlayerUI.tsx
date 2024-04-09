@@ -167,6 +167,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
 
   useEffect(() => {
+    // Show controls initially.
     showControls(true);
 
     // Ensure timer is cleaned up.
