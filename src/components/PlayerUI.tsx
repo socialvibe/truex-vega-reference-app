@@ -134,10 +134,9 @@ const styles = StyleSheet.create({
   }
 });
 
-function percentageSize(time: number, duration: number): `${number}%` {
+function timelineWidth(time: number, duration: number): number {
   // Try to stick to 2 decimal places of precision.
-  const result = duration > 0 ? (Math.floor((time / duration) * 10000) / 100) : 0;
-  return `${result}%`;
+  return duration > 0 ? (Math.floor((time * timelineW / duration) * 100) / 100) : 0;
 }
 
 interface PlayerUIProps {
@@ -296,26 +295,27 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     const progressBar = styles.timelineProgress;
     return {
       ...progressBar,
-      width: percentageSize(timelineDisplayTime, currDisplayDuration)
+      width: timelineWidth(timelineDisplayTime, currDisplayDuration)
     };
   }, [timelineDisplayTime, currDisplayDuration]);
 
   const seekLayout = useMemo(() => {
-    if (!(seekTarget >= 0)) return; // skip styling unless there is a seek target
-    const minSeekTarget = currAdBreak ? currAdBreak.startTime : 0;
-    const maxSeekTarget = currAdBreak ? currAdBreak.endTime : video.duration;
-    // Stay within the current ad break or the overall video.
-    const constrainedTarget = Math.max(minSeekTarget, Math.min(maxSeekTarget, seekTarget));
-    const currTarget = getVideoContentTimeAt(constrainedTarget, adPlaylist);
-    const targetDiff = Math.abs(currTarget - currContentTime);
-    const seekBarW = percentageSize(targetDiff, currDisplayDuration);
-    let seekBarX;
-    if (currContentTime <= currTarget) {
-      seekBarX = percentageSize(currContentTime, currDisplayDuration);
-    } else {
-      seekBarX = percentageSize(currContentTime - targetDiff, currDisplayDuration);
+    let seekBarX = 0;
+    let seekBarW = 0;
+    if (seekTarget >= 0) {
+      const minSeekTarget = currAdBreak ? currAdBreak.startTime : 0;
+      const maxSeekTarget = currAdBreak ? currAdBreak.endTime : video.duration;
+      // Stay within the current ad break or the overall video.
+      const constrainedTarget = Math.max(minSeekTarget, Math.min(maxSeekTarget, seekTarget));
+      const currTarget = getVideoContentTimeAt(constrainedTarget, adPlaylist);
+      const targetDiff = Math.abs(currTarget - currContentTime);
+      seekBarW = timelineWidth(targetDiff, currDisplayDuration);
+      if (currContentTime <= currTarget) {
+        seekBarX = timelineWidth(currContentTime, currDisplayDuration);
+      } else {
+        seekBarX = timelineWidth(currContentTime - targetDiff, currDisplayDuration);
+      }
     }
-    console.log(`*** seekLayout from ${timeLabel(currContentTime)} to ${timeLabel(currTarget)}: x ${seekBarX} w ${seekBarW} diff ${timeLabel(targetDiff)}`);
     return {
       ...styles.timelineSeek,
       width: seekBarW,
@@ -326,7 +326,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   const timeDisplayLayout = useMemo(() => {
     return {
       ...styles.currentTime,
-      left: percentageSize(timelineDisplayTime, currDisplayDuration)
+      left: timelineWidth(timelineDisplayTime, currDisplayDuration)
     };
   }, [timelineDisplayTime, currDisplayDuration]);
 
@@ -435,7 +435,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
             </View>
             <View style={styles.timeline}>
               <View style={progressBarLayout} />
-              {seekTarget >= 0 && <View style={seekLayout} />}
+              {seekLayout.width > 0 && <View style={seekLayout} />}
               <View style={styles.adMarkers}>{/* TODO */}</View>
               <View style={timeDisplayLayout}>
                 <Text style={[styles.timeLabel, styles.currentTimeOffset]}>
