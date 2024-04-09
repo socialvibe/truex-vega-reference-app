@@ -177,6 +177,14 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     () => getVideoContentTimeAt(video.duration, adPlaylist),
     [video.duration, adPlaylist]
   );
+  const currDisplayTime = useMemo(() => {
+    if (seekTarget >= 0) {
+      // Show the seek target instead of the playback time.
+      return getVideoContentTimeAt(seekTarget, adPlaylist);
+    }
+    return getVideoContentTimeAt(currStreamTime, adPlaylist);
+  }, [currStreamTime, adPlaylist, seekTarget]);
+
   const currDisplayDuration = useMemo(
     () => (currAdBreak ? currAdBreak.duration : contentDuration),
     [currAdBreak, contentDuration]
@@ -289,14 +297,6 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     };
   }, [video, currAdBreak, adPlaylist, seekTarget, seekTo]);
 
-  const timelineDisplayTime = useMemo(() => {
-    if (seekTarget >= 0) {
-      // Show the seek target instead of the playback time.
-      return getVideoContentTimeAt(seekTarget, adPlaylist);
-    }
-    return getVideoContentTimeAt(currStreamTime, adPlaylist);
-  }, [currStreamTime, adPlaylist, seekTarget]);
-
   const controlBarLayout = useMemo(() => {
     const controlBar = styles.controlBar;
     return {
@@ -310,9 +310,9 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     const progressBar = styles.timelineProgress;
     return {
       ...progressBar,
-      width: timelineWidth(timelineDisplayTime, currDisplayDuration)
+      width: timelineWidth(currDisplayTime, currDisplayDuration)
     };
-  }, [timelineDisplayTime, currDisplayDuration]);
+  }, [currDisplayTime, currDisplayDuration]);
 
   const seekLayout = useMemo(() => {
     let seekBarX = 0;
@@ -341,9 +341,9 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   const timeDisplayLayout = useMemo(() => {
     return {
       ...styles.currentTime,
-      left: timelineWidth(timelineDisplayTime, currDisplayDuration)
+      left: timelineWidth(currDisplayTime, currDisplayDuration)
     };
-  }, [timelineDisplayTime, currDisplayDuration]);
+  }, [currDisplayTime, currDisplayDuration]);
 
   const seekStep = useCallback(
     (steps: number) => {
@@ -457,7 +457,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
               )}
               <View style={timeDisplayLayout}>
                 <Text style={[styles.timeLabel, styles.currentTimeOffset]}>
-                  {timeLabel(timelineDisplayTime)}
+                  {timeLabel(currDisplayTime)}
                 </Text>
               </View>
             </View>
