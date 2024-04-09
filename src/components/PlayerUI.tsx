@@ -142,7 +142,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   const { width: deviceWidth, height: deviceHeight } = useWindowDimensions();
 
   const [isPlaying, setPlaying] = useState(!video.paused);
-  const [isShowingControls, setIsShowingControls] = useState(true);
+  const [isShowingControls, setIsShowingControls] = useState(false);
   const [streamTime, setStreamTime] = useState(0);
   const [seekTarget, setSeekTarget] = useState(-1);
 
@@ -165,7 +165,10 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     }
   }
 
+
   useEffect(() => {
+    showControls(true);
+
     // Ensure timer is cleaned up.
     return () => stopControlsDisplayTimer();
   }, [video]);
