@@ -359,7 +359,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
           } else if (skipForwardOverAdBreak || skipBackOverAdBreak) {
             if (nextAdBreak.completed) {
-              // We are skipping forward over a completed ad break. Ignore it.
+              // We are skipping over a completed ad break. Ignore it.
             } else {
               // Ensure we do not skip over an ad that still needs to be played.
               newTarget = nextAdBreak.startTime;
