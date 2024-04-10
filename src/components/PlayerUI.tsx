@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { HWEvent, Image, useTVEventHandler } from '@amzn/react-native-kepler';
 import { VideoPlayer } from '@amzn/react-native-w3cmedia';
 
