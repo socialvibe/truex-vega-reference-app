@@ -108,6 +108,7 @@ export function getVideoContentTimeAt(streamTime: number, adPlaylist: AdBreak[])
       if (adBreak.startTime <= streamTime && streamTime <= adBreak.endTime) {
         // We are within the ad, show the ad time.
         return streamTime - adBreak.startTime;
+
       } else if (adBreak.endTime <= streamTime) {
         // Discount the ad duration.
         result -= adBreak.duration;
@@ -152,6 +153,6 @@ export function pad(value: number): string {
 }
 
 export function timeDebug(streamTime: number, adPlaylist: AdBreak[]) {
-  const displayTime = getVideoContentTimeAt(streamTime, adPlaylist);
-  return `${timeLabel(displayTime)} [${timeLabel(streamTime)}]`;
+  const contentTime = getVideoContentTimeAt(streamTime, adPlaylist);
+  return `${timeLabel(contentTime)} [${timeLabel(streamTime)}]`;
 }
