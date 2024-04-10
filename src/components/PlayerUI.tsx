@@ -155,9 +155,6 @@ interface PlayerUIProps {
 }
 
 export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIProps) {
-  // Get the full screen resolution
-  const { width: deviceWidth } = useWindowDimensions();
-
   const [isPlaying, setPlaying] = useState(!video.paused);
   const [isShowingControls, setIsShowingControls] = useState(false);
   const [seekTarget, setSeekTarget] = useState(-1);
