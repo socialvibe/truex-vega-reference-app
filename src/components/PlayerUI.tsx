@@ -437,9 +437,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
                 </View>
               )}
               <View style={timeDisplayLayout}>
-                <Text style={styles.timeLabel}>
-                  {timeLabel(currDisplayTime)}
-                </Text>
+                <Text style={styles.timeLabel}>{timeLabel(currDisplayTime)}</Text>
               </View>
             </View>
             <View style={styles.duration}>
