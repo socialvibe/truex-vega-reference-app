@@ -4,6 +4,9 @@ import React, { useEffect } from 'react';
 import { AppButton } from './components/AppButton';
 import { StackScreenProps } from '@amzn/react-navigation__stack';
 
+import background from './assets/background.png';
+import logo from './assets/truex-vision-logo.png';
+
 export function HomeScreen({ navigation, route }: StackScreenProps<any>) {
   function repeatRender(count: number, callback: (index: number) => React.ReactNode) {
     return Array(count).fill(null).map((value, index) => callback(index));
@@ -17,11 +20,11 @@ export function HomeScreen({ navigation, route }: StackScreenProps<any>) {
   }, []);
 
   return (
-    <ImageBackground source={require('./assets/background.png')} style={styles.background}>
+    <ImageBackground source={background} style={styles.background}>
       <View style={styles.backgroundOverlay} />
       <View style={styles.container}>
         <View>
-          <Image source={require('./assets/truex-vision-logo.png')} />
+          <Image source={logo} />
         </View>
         <View style={styles.headerContainer}>
           <Text style={styles.headerText}>The true[X] Employee Experience</Text>
