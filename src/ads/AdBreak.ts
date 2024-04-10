@@ -70,8 +70,8 @@ export function getAdPlaylist(vmap: object[]) {
   return adPlaylist;
 }
 
-export function hasAdBreakAt(rawVideoTime: number, adPlaylist: AdBreak[]) {
-  const adBreak = getAdBreakAt(rawVideoTime, adPlaylist);
+export function hasAdBreakAt(streamTime: number, adPlaylist: AdBreak[]) {
+  const adBreak = getAdBreakAt(streamTime, adPlaylist);
   return !!adBreak;
 }
 
