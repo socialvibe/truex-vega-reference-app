@@ -369,6 +369,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       }
 
       seekTo(newTarget);
+      showControls(true);
     },
     [adPlaylist, currStreamTime, currContentTime, currAdBreak, currDisplayDuration, seekTo]
   );
@@ -412,13 +413,11 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       case 'skip_forward':
       case 'right':
         seekStep(1);
-        showControls(true);
         break;
 
       case 'skip_backward':
       case 'left':
         seekStep(-1);
-        showControls(true);
         break;
     }
   });
