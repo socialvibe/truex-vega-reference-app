@@ -3,7 +3,6 @@ import { StyleSheet, View } from 'react-native';
 import { StackScreenProps } from '@amzn/react-navigation__stack';
 
 import { KeplerVideoSurfaceView, VideoPlayer } from '@amzn/react-native-w3cmedia';
-import { BackHandler, Platform } from '@amzn/react-native-kepler';
 import PlayerUI from './components/PlayerUI';
 
 import videoStream from './data/video-stream.json';
