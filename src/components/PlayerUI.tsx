@@ -2,9 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native';
 import { HWEvent, Image, useTVEventHandler } from '@amzn/react-native-kepler';
 import { VideoPlayer } from '@amzn/react-native-w3cmedia';
-
-import playIcon from '../assets/play.png';
-import pauseIcon from '../assets/pause.png';
 import {
   AdBreak,
   getAdBreakAt,
@@ -14,6 +11,9 @@ import {
   timeDebug,
   timeLabel
 } from '../ads/AdBreak';
+
+import playIcon from '../assets/play.png';
+import pauseIcon from '../assets/pause.png';
 
 const disableSeeksInAds = false; // enable for demo purposes, set to true normally
 const debugVideoTime = false;
