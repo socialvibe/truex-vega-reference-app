@@ -96,12 +96,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#606060',
     alignItems: 'stretch'
   },
-  text: {
-    fontSize: 30,
-    color: 'white',
-    marginLeft: 200,
-    marginTop: 200
-  },
   videoView: {
     zIndex: 0,
     top: 0,
