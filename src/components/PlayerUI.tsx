@@ -371,7 +371,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       seekTo(newTarget);
       showControls(true);
     },
-    [adPlaylist, currStreamTime, currContentTime, currAdBreak, currDisplayDuration, seekTo]
+    [adPlaylist, currStreamTime, currContentTime, currAdBreak, currDisplayDuration, seekTo, showControls]
   );
 
   function play() {
