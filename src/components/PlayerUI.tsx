@@ -20,7 +20,7 @@ const debugVideoTime = false;
 
 const timelineW = 1480;
 const timelineH = 20;
-const playSize = 28;
+const playSize = 34;
 const padding = 8;
 const gap = 10;
 const timeDisplayW = 90;
@@ -102,6 +102,10 @@ const styles = StyleSheet.create({
   timeLabel: {
     color: 'white',
     fontSize: 20,
+    height: 22,
+    lineHeight: 22,
+    marginTop: 'auto',
+    marginBottom: 'auto',
     marginLeft: 'auto',
     marginRight: 'auto'
   },
@@ -117,16 +121,12 @@ const styles = StyleSheet.create({
     marginLeft: -timeDisplayW / 2,
     marginBottom: 8
   },
-  currentTimeOffset: {
-    marginBottom: 5
-  },
   duration: {
     verticalAlign: 'middle',
-    marginLeft: gap,
     textAlign: 'center',
+    marginLeft: gap,
     width: timeDisplayW,
-    height: controlBarH,
-    lineHeight: controlBarH
+    height: playSize
   }
 });
 
@@ -441,7 +441,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
                 </View>
               )}
               <View style={timeDisplayLayout}>
-                <Text style={[styles.timeLabel, styles.currentTimeOffset]}>
+                <Text style={styles.timeLabel}>
                   {timeLabel(currDisplayTime)}
                 </Text>
               </View>
