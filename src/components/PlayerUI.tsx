@@ -337,7 +337,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       const maxSeekSteps = 70; // ensure seek stepping has reasonable progress even on long videos.
       const stepSeconds =
         currDisplayDuration > 0
-          ? Math.max(minStepSeconds, currDisplayDuration / maxSeekSteps)
+          ? Math.max(minStepSeconds, Math.round(currDisplayDuration / maxSeekSteps))
           : minStepSeconds;
 
       let newTarget = Math.max(0, currStreamTime + steps * stepSeconds);
