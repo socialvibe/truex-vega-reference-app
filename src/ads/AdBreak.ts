@@ -87,7 +87,7 @@ export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[]) {
   return undefined;
 }
 
-export function getNextAvailableAdBreak(streamTime: number, adPlaylist: AdBreak[]) {
+export function getNextAdBreak(streamTime: number, adPlaylist: AdBreak[]) {
   if (adPlaylist) {
     for (const index in adPlaylist) {
       const adBreak = adPlaylist[index];

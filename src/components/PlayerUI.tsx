@@ -8,7 +8,7 @@ import pauseIcon from '../assets/pause.png';
 import {
   AdBreak,
   getAdBreakAt,
-  getNextAvailableAdBreak,
+  getNextAdBreak,
   getVideoContentTimeAt,
   getVideoStreamTimeAt,
   timeDebug,
@@ -349,7 +349,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
         // We are stepping thru content, ensure we skip over completed ads, stop on unplayed ones.
         const newContentTarget = Math.max(0, currContentTime + steps * stepSeconds);
         newTarget = getVideoStreamTimeAt(newContentTarget, adPlaylist);
-        const nextAdBreak = getNextAvailableAdBreak(Math.min(currStreamTime, newTarget), adPlaylist);
+        const nextAdBreak = getNextAdBreak(Math.min(currStreamTime, newTarget), adPlaylist);
         if (nextAdBreak) {
           const skipForwardOverAdBreak = currStreamTime < newTarget && nextAdBreak.startTime < newTarget;
           const skipBackOverAdBreak = newTarget < currStreamTime && nextAdBreak.startTime < currStreamTime;
