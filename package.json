@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "files": ["dist"],
   "scripts": {
-    "clean": "rm -rf node_modules buildinfo.json dist",
+    "clean": "rm -rf buildinfo.json dist",
     "start": "npx react-native start",
-    "lint": "eslint src tst --ext .ts,.tsx",
+    "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src tst --ext .ts,.tsx --fix",
     "compile": "tsc -p tsconfig.json",
     "build": "npm run compile",
@@ -16,7 +16,8 @@
     "kepler-run-release": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
     "kepler-simulator": "kepler device simulator start",
     "kepler-fast-refresh": "kepler device start-port-forwarding --device Simulator -p 8081 --forward false",
-    "kepler-log": "kepler device start-log-stream"
+    "kepler-log": "kepler device start-log-stream",
+    "kepler-log-stop": "kepler device stop-log-stream"
   },
   "dependencies": {
     "@amzn/keplerscript-react-native-reanimated": "~2.0.0",

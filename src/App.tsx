@@ -1,9 +1,9 @@
 import React from 'react';
 import 'react-native-gesture-handler';
-import {NavigationContainer} from '@amzn/react-navigation__native';
-import {createStackNavigator} from "@amzn/react-navigation__stack";
-import HomeScreen from "./HomeScreen";
-import PlaybackScreen from "./PlaybackScreen";
+import { NavigationContainer } from '@amzn/react-navigation__native';
+import { createStackNavigator } from '@amzn/react-navigation__stack';
+import HomeScreen from './HomeScreen';
+import PlaybackScreen from './PlaybackScreen';
 
 const Stack = createStackNavigator();
 

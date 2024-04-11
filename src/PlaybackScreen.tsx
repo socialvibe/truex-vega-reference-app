@@ -1,35 +1,36 @@
-import React, {useCallback, useEffect, useRef} from "react";
-import {StyleSheet, useWindowDimensions, View} from 'react-native';
-import {StackScreenProps} from "@amzn/react-navigation__stack";
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { StackScreenProps } from '@amzn/react-navigation__stack';
 
-import {KeplerVideoSurfaceView, VideoPlayer} from "@amzn/react-native-w3cmedia";
-import {BackHandler, Platform, Text} from "@amzn/react-native-kepler";
+import { KeplerVideoSurfaceView, VideoPlayer } from '@amzn/react-native-w3cmedia';
+import PlayerUI from './video/PlayerUI';
 
-const content =
-  {
-    secure: "false", // true : Use Secure Video Buffers. false: Use Unsecure Video Buffers.
-    uri: "https://ctv.truex.com/assets/reference-app-stream-no-cards-720p.mp4",
-    drm_scheme: "", // com.microsoft.playready, com.widevine.alpha depending on the drm schema
-    drm_license_uri: "", // DRM License acquisition server URL : needed only if the content is DRM protected
-  };
+import { getAdBreaks } from './video/AdBreak';
 
-export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
-  // Get the full screen resolution
-  const {width: deviceWidth, height: deviceHeight} = useWindowDimensions();
+import { VideoStreamConfig } from './video/VideoStreamConfig';
+import videoStreamJson from './data/video-stream.json';
+const videoStream = videoStreamJson as VideoStreamConfig;
 
-  const videoRef = useRef<VideoPlayer | undefined>(new VideoPlayer());
-  const surfaceRef = useRef<string|undefined>();
 
-  const startVideo = () => {
-    const video = videoRef.current;
-    if (!video) return;
+export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
+  const video = useMemo(() => new VideoPlayer(), []);
+
+  // Would be passed in as a page route arg in a real app, as would the video steam itself.
+  const adPlaylist = useMemo(() => {
+    return getAdBreaks(videoStream.adBreaks);
+  }, []);
+
+  const surfaceRef = useRef<string | undefined>();
+
+  const startVideo = useCallback(() => {
     if (!surfaceRef.current) return;
     if (!video.src) return;
     video.setSurfaceHandle(surfaceRef.current);
 
     // Starting playback "later" seems to help.
     setTimeout(() => {
-      video.play()
+      video
+        .play()
         .then(() => {
           console.log('*** video playing');
         })
@@ -37,41 +38,34 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
           console.error(`*** video play error: ${err}`);
         });
     }, 5);
-  }
+  }, [video]);
 
-  const stopVideo = () => {
-    const video = videoRef.current;
-    if (!video) return;
+  const stopVideo = useCallback(() => {
     video.pause();
     video.clearSurfaceHandle('');
+    video.deinitialize().then(() => console.log('*** video deinitialized'));
     surfaceRef.current = undefined;
-    videoRef.current = undefined;
     console.log('*** video stopped');
-  }
+  }, [video]);
 
   const navigateBack = useCallback(() => {
     stopVideo();
     navigation.goBack();
     return true;
-  }, []);
+  }, [navigation, stopVideo]);
 
   useEffect(() => {
-    const video = videoRef.current;
     if (!video) {
       console.error('*** video was not created!');
       return;
     }
     console.log('*** playback page mounted');
 
-    if (Platform.isTV) {
-      BackHandler.addEventListener('hardwareBackPress', navigateBack);
-    }
-
     video.initialize().then(() => {
       console.log('*** video initialized');
       video.autoplay = false;
 
-      video.src = content.uri;
+      video.src = videoStream.stream;
       console.log('*** video src: ' + video.src);
       video.autoplay = false;
       video.pause();
@@ -81,21 +75,19 @@ export function PlaybackScreen({navigation, route}: StackScreenProps<any>) {
 
     return () => {
       console.log('*** playback page unmounted');
-      if (Platform.isTV) {
-        BackHandler.removeEventListener('hardwareBackPress', navigateBack);
-      }
     };
-  }, []);
+  }, [video, navigateBack, startVideo]);
 
   const onSurfaceViewCreated = (surfaceHandle: string): void => {
     console.log('*** video surface created: ' + surfaceHandle);
     surfaceRef.current = surfaceHandle;
     setTimeout(() => startVideo(), 100);
-  }
+  };
 
   return (
     <View style={styles.playbackPage}>
-      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated}/>
+      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} />
+      <PlayerUI video={video} navigateBack={navigateBack} title={videoStream.title} adPlaylist={adPlaylist} />
     </View>
   );
 }
@@ -105,22 +97,16 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: '#606060',
-    alignItems: "stretch"
-  },
-  text: {
-    fontSize: 30,
-    color: 'white',
-    marginLeft: 200,
-    marginTop: 200
+    alignItems: 'stretch'
   },
   videoView: {
-    backgroundColor: 'transparent',
+    zIndex: 0,
     top: 0,
     left: 0,
     position: 'absolute',
     width: '100%',
-    height: '100%',
-  },
+    height: '100%'
+  }
 });
 
 export default PlaybackScreen;
