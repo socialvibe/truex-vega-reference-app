@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "files": ["dist"],
   "scripts": {
-    "clean": "rm -rf node_modules buildinfo.json dist",
+    "clean": "rm -rf buildinfo.json dist",
     "start": "npx react-native start",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src tst --ext .ts,.tsx --fix",

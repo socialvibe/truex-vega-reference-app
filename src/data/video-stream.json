@@ -3,18 +3,18 @@
   "description": "Our mission is to provide the best advertising experience for consumers, the best monetization for premium publishers, and the best return for brand advertisers. Learn about our team and employee experience.",
   "cover": "https://stash.truex.com/reference-apps/scratch/truex_cover_placeholder_spaceneedle.png",
   "preview": "https://media.truex.com/video_assets/2017-03-06/a9fbc895-6987-440e-b940-eeef8a714338_large.mp4",
-  "url": "https://ctv.truex.com/assets/reference-app-stream-no-cards-720p.mp4",
-  "vmap": [
+  "stream": "https://ctv.truex.com/assets/reference-app-stream-no-cards-720p.mp4",
+  "adBreaks": [
     {
       "breakId": "preroll",
-      "timeOffset": "00:00:00.000",
-      "videoAdDuration": "92",
+      "contentTime": "00:00:00.000",
+      "duration": 92,
       "vastUrl": "https://get.truex.com/d3bfc4a1c2f31ab987f2725a5ed03c9ae5837887/vast/config?dimension_2=0&stream_position=preroll&stream_id=1234"
     },
     {
       "breakId": "midroll-1",
-      "timeOffset": "00:08:05.000",
-      "videoAdDuration": "92",
+      "contentTime": "00:08:05.000",
+      "duration": 92,
       "vastUrl": "https://get.truex.com/d3bfc4a1c2f31ab987f2725a5ed03c9ae5837887/vast/config?dimension_2=1&stream_position=midroll&stream_id=1234"
     }
   ]

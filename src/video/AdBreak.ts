@@ -1,3 +1,5 @@
+import { AdBreakConfig } from './VideoStreamConfig';
+
 /**
  * Describes a single ad break that maps to 1 or more fallback ad videos in the main video
  * (ads are assumed to be sitched in), that furthermore describes a true[X] interactive ad to show
@@ -18,16 +20,16 @@ export class AdBreak {
   public startTime: number;
   public endTime: number;
 
-  constructor(vmapJson: any) {
-    this.id = vmapJson.breakId;
-    this.duration = parseFloat(vmapJson.videoAdDuration);
+  constructor(config: AdBreakConfig) {
+    this.id = config.breakId;
+    this.duration = config.duration;
 
-    this.vastUrl = vmapJson.vastUrl;
+    this.vastUrl = config.vastUrl;
 
     this.started = false;
     this.completed = false;
 
-    this.contentTime = parseTimeLabel(vmapJson.timeOffset);
+    this.contentTime = parseTimeLabel(config.contentTime);
     this.startTime = 0;
     this.endTime = 0;
   }
@@ -37,12 +39,12 @@ export class AdBreak {
   }
 }
 
-function parseTimeLabel(label: string): number {
-  if (!label) return 0;
+function parseTimeLabel(hhmmss: string): number {
+  if (!hhmmss) return 0;
   let hours = 0;
   let minutes = 0;
   let seconds = 0;
-  const parts = label.split(':');
+  const parts = hhmmss.split(':');
   if (parts.length >= 3) {
     hours = parseFloat(parts[0]);
     minutes = parseFloat(parts[1]);
@@ -56,18 +58,18 @@ function parseTimeLabel(label: string): number {
   return seconds + minutes * 60 + hours * 60 * 60;
 }
 
-export function getAdPlaylist(vmap: object[]) {
-  const adPlaylist = vmap?.map((vmapJson: any) => new AdBreak(vmapJson)) || [];
+export function getAdBreaks(adBreakConfigs: AdBreakConfig[]) {
+  const adBreaks = adBreakConfigs?.map(config => new AdBreak(config)) || [];
 
   // Correct ad display times into raw video times for the actual time in the overall video.
   let totalAdsDuration = 0;
-  adPlaylist.forEach(adBreak => {
+  adBreaks.forEach(adBreak => {
     adBreak.startTime = adBreak.contentTime + totalAdsDuration;
     adBreak.endTime = adBreak.startTime + adBreak.duration;
     totalAdsDuration += adBreak.duration;
   });
 
-  return adPlaylist;
+  return adBreaks;
 }
 
 export function hasAdBreakAt(streamTime: number, adPlaylist: AdBreak[]) {
@@ -134,7 +136,7 @@ export function getVideoStreamTimeAt(contentTime: number, adPlaylist: AdBreak[])
 }
 
 export function timeLabel(time: number): string {
-  if (time < 0) return "-1";
+  if (time < 0) return '-1';
 
   const seconds = time % 60;
   time /= 60;

@@ -1,7 +1,7 @@
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { Image } from '@amzn/react-native-kepler';
 import React, { useEffect } from 'react';
-import { AppButton } from './components/AppButton';
+import { AppButton } from './ui/AppButton';
 import { StackScreenProps } from '@amzn/react-navigation__stack';
 
 import background from './assets/background.png';

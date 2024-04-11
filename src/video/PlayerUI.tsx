@@ -10,7 +10,7 @@ import {
   getVideoStreamTimeAt,
   timeDebug,
   timeLabel
-} from '../ads/AdBreak';
+} from './AdBreak';
 
 import playIcon from '../assets/play.png';
 import pauseIcon from '../assets/pause.png';

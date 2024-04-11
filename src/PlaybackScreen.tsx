@@ -3,18 +3,21 @@ import { StyleSheet, View } from 'react-native';
 import { StackScreenProps } from '@amzn/react-navigation__stack';
 
 import { KeplerVideoSurfaceView, VideoPlayer } from '@amzn/react-native-w3cmedia';
-import PlayerUI from './components/PlayerUI';
+import PlayerUI from './video/PlayerUI';
 
-import videoStream from './data/video-stream.json';
+import { getAdBreaks } from './video/AdBreak';
 
-import { getAdPlaylist } from './ads/AdBreak';
+import { VideoStreamConfig } from './video/VideoStreamConfig';
+import videoStreamJson from './data/video-stream.json';
+const videoStream = videoStreamJson as VideoStreamConfig;
+
 
 export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const video = useMemo(() => new VideoPlayer(), []);
 
   // Would be passed in as a page route arg in a real app, as would the video steam itself.
   const adPlaylist = useMemo(() => {
-    return getAdPlaylist(videoStream.vmap);
+    return getAdBreaks(videoStream.adBreaks);
   }, []);
 
   const surfaceRef = useRef<string | undefined>();
@@ -62,7 +65,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
       console.log('*** video initialized');
       video.autoplay = false;
 
-      video.src = videoStream.url;
+      video.src = videoStream.stream;
       console.log('*** video src: ' + video.src);
       video.autoplay = false;
       video.pause();
