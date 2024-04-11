@@ -2,7 +2,7 @@
 
 export interface AdBreakConfig {
   breakId: string;
-  contentTime: string; // e.g. HH:MM:SS or HH:MM:SS.mmm
+  contentTime: string; // e.g. HH:MM:SS
   duration: number; // seconds
   vastUrl: string;
 }

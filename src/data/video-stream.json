@@ -7,13 +7,13 @@
   "adBreaks": [
     {
       "breakId": "preroll",
-      "contentTime": "00:00:00.000",
+      "contentTime": "00:00:00",
       "duration": 92,
       "vastUrl": "https://get.truex.com/d3bfc4a1c2f31ab987f2725a5ed03c9ae5837887/vast/config?dimension_2=0&stream_position=preroll&stream_id=1234"
     },
     {
       "breakId": "midroll-1",
-      "contentTime": "00:08:05.000",
+      "contentTime": "00:08:05",
       "duration": 92,
       "vastUrl": "https://get.truex.com/d3bfc4a1c2f31ab987f2725a5ed03c9ae5837887/vast/config?dimension_2=1&stream_position=midroll&stream_id=1234"
     }
