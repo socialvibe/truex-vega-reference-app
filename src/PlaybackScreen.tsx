@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { StackScreenProps } from '@amzn/react-navigation__stack';
 
 import { KeplerVideoSurfaceView, VideoPlayer } from '@amzn/react-native-w3cmedia';
+
 import PlayerUI from './video/PlayerUI';
 
 import { getAdBreaks } from './video/AdBreak';

@@ -34,6 +34,10 @@ export class AdBreak {
     this.endTime = 0;
   }
 
+  isTruexAd(): boolean {
+    return this.vastUrl.includes('truex.com');
+  }
+
   includesTime(streamTime: number): boolean {
     return this.startTime <= streamTime && streamTime <= this.endTime;
   }
