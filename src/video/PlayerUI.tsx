@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { HWEvent, Image, useTVEventHandler } from "@amzn/react-native-kepler";
-import { VideoPlayer } from "@amzn/react-native-w3cmedia";
+import React, { Component, Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { HWEvent, Image, TVEventHandler, useTVEventHandler } from '@amzn/react-native-kepler';
+import { VideoPlayer } from '@amzn/react-native-w3cmedia';
 import { AdEventHandler, TruexAd, TruexAdEvent } from '@truex/ad-renderer-kepler';
 
 import {
@@ -12,10 +12,10 @@ import {
   getVideoStreamTimeAt,
   timeDebug,
   timeLabel
-} from "./AdBreak";
+} from './AdBreak';
 
-import playIcon from "../assets/play.png";
-import pauseIcon from "../assets/pause.png";
+import playIcon from '../assets/play.png';
+import pauseIcon from '../assets/pause.png';
 
 const disableSeeksInAds = false; // enable for demo purposes, set to true normally
 const debugVideoTime = false;
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
 
 function timelineWidth(time: number, duration: number): number {
   // Try to stick to 2 decimal places of precision.
-  return duration > 0 ? (Math.floor((time * timelineW / duration) * 100) / 100) : 0;
+  return duration > 0 ? Math.floor(((time * timelineW) / duration) * 100) / 100 : 0;
 }
 
 interface AdBreakMarkerProps {
@@ -143,10 +143,11 @@ interface AdBreakMarkerProps {
 }
 
 function AdBreakMarker({ contentTime, duration }: AdBreakMarkerProps) {
-  const layout = useMemo(() => [styles.adBreak, {left: timelineWidth(contentTime, duration)}], [contentTime, duration]);
-  return (
-    <View style={layout}/>
+  const layout = useMemo(
+    () => [styles.adBreak, { left: timelineWidth(contentTime, duration) }],
+    [contentTime, duration]
   );
+  return <View style={layout} />;
 }
 
 interface PlayerUIProps {
@@ -185,26 +186,36 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   }, []);
 
   const play = useCallback(() => {
-    video.play();
+    console.log('*** play');
     setPlaying(true);
     showControls(true);
+    setTimeout(() => video.play(), 100);
   }, [video, showControls]);
 
   const pause = useCallback(() => {
-    video.pause();
+    console.log('*** pause');
     setPlaying(false);
     showControls(true, false);
+    setTimeout(() => video.pause(), 100);
   }, [video, showControls]);
 
-  const showAdBreak = useCallback((adBreak: AdBreak | undefined) => {
-    setCurrAdBreak(adBreak);
-    if (adBreak?.isTruexAd()) {
-      setHasAdCredit(false);
-      setShowTruexAd(true);
-      // stop the ad videos, will resume later once truex ad completes
-      pause();
-    }
-  }, [pause]);
+  const showAdBreak = useCallback(
+    (adBreak: AdBreak | undefined) => {
+      setCurrAdBreak(adBreak);
+      if (adBreak?.isTruexAd()) {
+        console.log(`*** showing truex ad`);
+        setHasAdCredit(false);
+        setShowTruexAd(true);
+        // stop the ad videos, will resume later once truex ad completes
+        pause();
+      } else if (adBreak) {
+        console.log(`*** showing regular ad break`);
+      } else {
+        console.log(`*** removing ad break`);
+      }
+    },
+    [pause]
+  );
 
   const currContentTime = useMemo(
     () => getVideoContentTimeAt(currStreamTime, adPlaylist),
@@ -241,26 +252,30 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     [video, adPlaylist, currStreamTime]
   );
 
-  const onAdEvent: AdEventHandler = useCallback<AdEventHandler>((event, data) => {
-    if (!currAdBreak) return; // should not happen
-    switch (event) {
-      case TruexAdEvent.AdFreePod:
-        // Remember for later that we have the ad credit.
-        setHasAdCredit(true);
-        break;
+  const onAdEvent: AdEventHandler = useCallback<AdEventHandler>(
+    (event, data) => {
+      console.log(`*** truex event: ${event} ad break: ${!!currAdBreak}`);
+      if (!currAdBreak) return; // should not happen
+      switch (event) {
+        case TruexAdEvent.AdFreePod:
+          // Remember for later that we have the ad credit.
+          setHasAdCredit(true);
+          break;
 
-      case TruexAdEvent.AdCompleted:
-      case TruexAdEvent.AdError:
-      case TruexAdEvent.NoAdsAvailable:
-        if (hasAdCredit) {
-          // skip over the fallback ads.
-          seekTo(currAdBreak.endTime);
-        }
-        play(); // resume either fallback ads or else main video
-        setShowTruexAd(false);
-        break;
-    }
-  }, [currAdBreak, hasAdCredit, seekTo, play]);
+        case TruexAdEvent.AdCompleted:
+        case TruexAdEvent.AdError:
+        case TruexAdEvent.NoAdsAvailable:
+          if (hasAdCredit) {
+            // skip over the fallback ads.
+            seekTo(currAdBreak.endTime);
+          }
+          play(); // resume either fallback ads or else main video
+          setShowTruexAd(false);
+          break;
+      }
+    },
+    [currAdBreak, hasAdCredit, seekTo, play]
+  );
 
   useEffect(() => {
     // Show controls initially.
@@ -422,7 +437,8 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     [adPlaylist, currStreamTime, currContentTime, currAdBreak, currDisplayDuration, seekTo, showControls]
   );
 
-  useTVEventHandler((evt: HWEvent) => {
+  const onHWEvent = useCallback((evt: HWEvent) => {
+    if (showTruexAd) return; // do not interfere with Truex's own interactive processing.
     if (evt.eventKeyAction !== 0) return; // ignore key up events
     switch (evt.eventType) {
       case 'back':
@@ -456,37 +472,39 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
         seekStep(-1);
         break;
     }
-  });
+  }, [navigateBack, video, showTruexAd, pause, play, seekStep]);
+
+  useTVEventHandler(onHWEvent);
 
   return (
     <>
       {isShowingControls && !showTruexAd && (
         <View style={styles.playbackContainer}>
-          <View style={styles.controlBar}>
-            <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon} />
-            <View style={styles.timeline}>
-              <View style={progressBarLayout} />
-              {seekLayout.width > 0 && <View style={seekLayout} />}
-              {contentDuration > 0 && adPlaylist?.length > 0 && !currAdBreak && (
-                <View style={styles.adMarkers}>
+            <View style={styles.controlBar}>
+              <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon} />
+              <View style={styles.timeline}>
+                <View style={progressBarLayout} />
+                {seekLayout.width > 0 && <View style={seekLayout} />}
+                {contentDuration > 0 && adPlaylist?.length > 0 && !currAdBreak && (
+                  <View style={styles.adMarkers}>
                   {adPlaylist.map(adBreak => <AdBreakMarker contentTime={adBreak.contentTime} duration={contentDuration}/>)}
+                  </View>
+                )}
+                <View style={timeDisplayLayout}>
+                  <Text style={styles.timeLabel}>{timeLabel(currDisplayTime)}</Text>
                 </View>
-              )}
-              <View style={timeDisplayLayout}>
-                <Text style={styles.timeLabel}>{timeLabel(currDisplayTime)}</Text>
+              </View>
+              <View style={styles.duration}>
+                <Text style={styles.timeLabel}>{timeLabel(currDisplayDuration)}</Text>
               </View>
             </View>
-            <View style={styles.duration}>
-              <Text style={styles.timeLabel}>{timeLabel(currDisplayDuration)}</Text>
+        </View>
+          )}
+          {currAdBreak && (
+            <View style={styles.adIndicator}>
+              <Text style={styles.adLabel}>Ad</Text>
             </View>
-          </View>
-        </View>
-      )}
-      {currAdBreak && (
-        <View style={styles.adIndicator}>
-          <Text style={styles.adLabel}>Ad</Text>
-        </View>
-      )}
+          )}
       {currAdBreak && showTruexAd && (
         <TruexAd vastConfigUrl={currAdBreak?.vastUrl} onAdEvent={onAdEvent}/>
       )}

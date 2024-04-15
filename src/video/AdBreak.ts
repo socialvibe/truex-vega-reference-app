@@ -20,8 +20,6 @@ export class AdBreak {
   public startTime: number;
   public endTime: number;
 
-  public showingTruexAd: boolean;
-
   constructor(config: AdBreakConfig) {
     this.id = config.breakId;
     this.duration = config.duration;
@@ -34,8 +32,6 @@ export class AdBreak {
     this.contentTime = parseTimeLabel(config.contentTime);
     this.startTime = 0;
     this.endTime = 0;
-
-    this.showingTruexAd = false;
   }
 
   isTruexAd(): boolean {

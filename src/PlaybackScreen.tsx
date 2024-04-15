@@ -30,6 +30,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
     // Starting playback "later" seems to help.
     setTimeout(() => {
+      console.log('*** video play start');
       video
         .play()
         .then(() => {
