@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { HWEvent, Image, useTVEventHandler } from '@amzn/react-native-kepler';
-import { VideoPlayer } from '@amzn/react-native-w3cmedia';
-import { TruexAd } from "@truex/ad-renderer-kepler";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { HWEvent, Image, useTVEventHandler } from "@amzn/react-native-kepler";
+import { VideoPlayer } from "@amzn/react-native-w3cmedia";
+import { AdEventHandler, TruexAd, TruexAdEvent } from '@truex/ad-renderer-kepler';
 
 import {
   AdBreak,
@@ -12,10 +12,10 @@ import {
   getVideoStreamTimeAt,
   timeDebug,
   timeLabel
-} from './AdBreak';
+} from "./AdBreak";
 
-import playIcon from '../assets/play.png';
-import pauseIcon from '../assets/pause.png';
+import playIcon from "../assets/play.png";
+import pauseIcon from "../assets/pause.png";
 
 const disableSeeksInAds = false; // enable for demo purposes, set to true normally
 const debugVideoTime = false;
@@ -162,7 +162,49 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   const [seekTarget, setSeekTarget] = useState(-1);
 
   const [currStreamTime, setCurrStreamTime] = useState(0);
+
   const [currAdBreak, setCurrAdBreak] = useState<AdBreak | undefined>();
+  const [hasAdCredit, setHasAdCredit] = useState(false);
+  const [showTruexAd, setShowTruexAd] = useState(false);
+
+  const controlsDisplayTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>();
+
+  function stopControlsDisplayTimer() {
+    if (controlsDisplayTimerRef.current) {
+      clearTimeout(controlsDisplayTimerRef.current);
+      controlsDisplayTimerRef.current = undefined;
+    }
+  }
+
+  const showControls = useCallback((show: boolean, useTimeout = true) => {
+    stopControlsDisplayTimer();
+    setIsShowingControls(show);
+    if (show && useTimeout) {
+      controlsDisplayTimerRef.current = setTimeout(() => showControls(false), 5 * 1000);
+    }
+  }, []);
+
+  const play = useCallback(() => {
+    video.play();
+    setPlaying(true);
+    showControls(true);
+  }, [video, showControls]);
+
+  const pause = useCallback(() => {
+    video.pause();
+    setPlaying(false);
+    showControls(true, false);
+  }, [video, showControls]);
+
+  const showAdBreak = useCallback((adBreak: AdBreak | undefined) => {
+    setCurrAdBreak(adBreak);
+    if (adBreak?.isTruexAd()) {
+      setHasAdCredit(false);
+      setShowTruexAd(true);
+      // stop the ad videos, will resume later once truex ad completes
+      pause();
+    }
+  }, [pause]);
 
   const currContentTime = useMemo(
     () => getVideoContentTimeAt(currStreamTime, adPlaylist),
@@ -199,33 +241,37 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     [video, adPlaylist, currStreamTime]
   );
 
-  const controlsDisplayTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>();
+  const onAdEvent: AdEventHandler = useCallback<AdEventHandler>((event, data) => {
+    if (!currAdBreak) return; // should not happen
+    switch (event) {
+      case TruexAdEvent.AdFreePod:
+        // Remember for later that we have the ad credit.
+        setHasAdCredit(true);
+        break;
 
-  function stopControlsDisplayTimer() {
-    if (controlsDisplayTimerRef.current) {
-      clearTimeout(controlsDisplayTimerRef.current);
-      controlsDisplayTimerRef.current = undefined;
+      case TruexAdEvent.AdCompleted:
+      case TruexAdEvent.AdError:
+      case TruexAdEvent.NoAdsAvailable:
+        if (hasAdCredit) {
+          // skip over the fallback ads.
+          seekTo(currAdBreak.endTime);
+        }
+        play(); // resume either fallback ads or else main video
+        setShowTruexAd(false);
+        break;
     }
-  }
-
-  const showControls = useCallback((show: boolean, useTimeout = true) => {
-    stopControlsDisplayTimer();
-    setIsShowingControls(show);
-    if (show && useTimeout) {
-      controlsDisplayTimerRef.current = setTimeout(() => showControls(false), 5 * 1000);
-    }
-  }, []);
+  }, [currAdBreak, hasAdCredit, seekTo, play]);
 
   useEffect(() => {
     // Show controls initially.
     showControls(true);
 
     // Ensure the preroll ad break is known as soon as possible.
-    setCurrAdBreak(getAdBreakAt(0, adPlaylist));
+    showAdBreak(getAdBreakAt(0, adPlaylist));
 
     // Ensure timer is cleaned up.
     return () => stopControlsDisplayTimer();
-  }, [showControls, adPlaylist]);
+  }, [showControls, adPlaylist, showAdBreak]);
 
   useEffect(() => {
     const onPlaying = () => setPlaying(true);
@@ -267,7 +313,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       });
 
       if (currAdBreak != newAdBreak) {
-        setCurrAdBreak(newAdBreak);
+        showAdBreak(newAdBreak);
       }
 
       // Process any seek changes.
@@ -290,7 +336,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('seeked', onSeeked);
     };
-  }, [video, currAdBreak, adPlaylist, seekTarget, seekTo]);
+  }, [video, currAdBreak, adPlaylist, seekTarget, seekTo, showAdBreak]);
 
   const progressBarLayout = useMemo(() => {
     const progressBar = styles.timelineProgress;
@@ -376,18 +422,6 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
     [adPlaylist, currStreamTime, currContentTime, currAdBreak, currDisplayDuration, seekTo, showControls]
   );
 
-  function play() {
-    video.play();
-    setPlaying(true);
-    showControls(true);
-  }
-
-  function pause() {
-    video.pause();
-    setPlaying(false);
-    showControls(true, false);
-  }
-
   useTVEventHandler((evt: HWEvent) => {
     if (evt.eventKeyAction !== 0) return; // ignore key up events
     switch (evt.eventType) {
@@ -426,7 +460,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
   return (
     <>
-      {isShowingControls && (
+      {isShowingControls && !showTruexAd && (
         <View style={styles.playbackContainer}>
           <View style={styles.controlBar}>
             <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon} />
@@ -453,8 +487,8 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
           <Text style={styles.adLabel}>Ad</Text>
         </View>
       )}
-      {currAdBreak?.isTruexAd() && (
-        <TruexAd vastConfigUrl={currAdBreak?.vastUrl}/>
+      {currAdBreak && showTruexAd && (
+        <TruexAd vastConfigUrl={currAdBreak?.vastUrl} onAdEvent={onAdEvent}/>
       )}
     </>
   );
