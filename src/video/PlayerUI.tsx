@@ -1,6 +1,6 @@
-import React, { Component, Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { HWEvent, Image, TVEventHandler, useTVEventHandler } from '@amzn/react-native-kepler';
+import { HWEvent, Image, useTVEventHandler } from '@amzn/react-native-kepler';
 import { VideoPlayer } from '@amzn/react-native-w3cmedia';
 import { AdEventHandler, TruexAd, TruexAdEvent } from '@truex/ad-renderer-kepler';
 
@@ -165,8 +165,10 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   const [currStreamTime, setCurrStreamTime] = useState(0);
 
   const [currAdBreak, setCurrAdBreak] = useState<AdBreak | undefined>();
-  const [hasAdCredit, setHasAdCredit] = useState(false);
   const [showTruexAd, setShowTruexAd] = useState(false);
+
+  const hasAdCredit = useRef(false);
+  const afterAdResumeTarget = useRef<number | undefined>();
 
   const controlsDisplayTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>();
 
@@ -202,10 +204,17 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
   const showAdBreak = useCallback(
     (adBreak: AdBreak | undefined) => {
       setCurrAdBreak(adBreak);
-      if (adBreak?.isTruexAd()) {
+
+      const isTruex = adBreak?.isTruexAd() || false;
+      setShowTruexAd(isTruex);
+
+      hasAdCredit.current = false;
+
+      // ensure we don't see the last second of the ad
+      afterAdResumeTarget.current = adBreak ? adBreak.endTime + 1 : undefined;
+
+      if (isTruex) {
         console.log(`*** showing truex ad`);
-        setHasAdCredit(false);
-        setShowTruexAd(true);
         // stop the ad videos, will resume later once truex ad completes
         pause();
       } else if (adBreak) {
@@ -254,27 +263,26 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
 
   const onAdEvent: AdEventHandler = useCallback<AdEventHandler>(
     (event, data) => {
-      console.log(`*** truex event: ${event} ad break: ${!!currAdBreak}`);
-      if (!currAdBreak) return; // should not happen
+      console.log(`*** truex event: ${event}`);
       switch (event) {
         case TruexAdEvent.AdFreePod:
           // Remember for later that we have the ad credit.
-          setHasAdCredit(true);
+          hasAdCredit.current = true;
           break;
 
         case TruexAdEvent.AdCompleted:
         case TruexAdEvent.AdError:
         case TruexAdEvent.NoAdsAvailable:
-          if (hasAdCredit) {
+          if (hasAdCredit.current && afterAdResumeTarget.current !== undefined) {
             // skip over the fallback ads.
-            seekTo(currAdBreak.endTime);
+            seekTo(afterAdResumeTarget.current);
           }
           play(); // resume either fallback ads or else main video
           setShowTruexAd(false);
           break;
       }
     },
-    [currAdBreak, hasAdCredit, seekTo, play]
+    [seekTo, play]
   );
 
   useEffect(() => {
@@ -304,7 +312,7 @@ export function PlayerUI({ navigateBack, title, video, adPlaylist }: PlayerUIPro
         if (adBreak) {
           if (adBreak.completed) {
             // We have played this ad break before. Skip over it
-            newSeekTarget = adBreak.endTime + 1; // ensure we don't see the last second of the ad
+            newSeekTarget = adBreak.endTime + 1;
             return newStreamTime;
           }
 
