@@ -50,14 +50,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%'
   },
-  playerUI: {
-    position: 'absolute',
-    zIndex: 5,
-    top: 0,
-    left: 0,
-    height: '100%',
-    width: '100%'
-  },
   adLabel: {
     color: 'white',
     fontSize: 50
@@ -566,24 +558,24 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     <View style={styles.playbackPage}>
       <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} />
       {isShowingControls && !showTruexAd && (
-        <View style={styles.playerUI}>
-          <View style={styles.controlBar}>
-            <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon} />
-            <View style={styles.timeline}>
-              <View style={progressBarLayout} />
-              {seekLayout.width > 0 && <View style={seekLayout} />}
-              {contentDuration > 0 && adPlaylist?.length > 0 && !currAdBreak && (
-                <View style={styles.adMarkers}>
-                  {adPlaylist.map(adBreak => <AdBreakMarker contentTime={adBreak.contentTime} duration={contentDuration}/>)}
-                </View>
-              )}
-              <View style={timeDisplayLayout}>
-                <Text style={styles.timeLabel}>{timeLabel(currDisplayTime)}</Text>
+        <View style={styles.controlBar}>
+          <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon} />
+          <View style={styles.timeline}>
+            <View style={progressBarLayout} />
+            {seekLayout.width > 0 && <View style={seekLayout} />}
+            {contentDuration > 0 && adPlaylist?.length > 0 && !currAdBreak && (
+              <View style={styles.adMarkers}>
+                {adPlaylist.map(adBreak => (
+                  <AdBreakMarker contentTime={adBreak.contentTime} duration={contentDuration} />
+                ))}
               </View>
+            )}
+            <View style={timeDisplayLayout}>
+              <Text style={styles.timeLabel}>{timeLabel(currDisplayTime)}</Text>
             </View>
-            <View style={styles.duration}>
-              <Text style={styles.timeLabel}>{timeLabel(currDisplayDuration)}</Text>
-            </View>
+          </View>
+          <View style={styles.duration}>
+            <Text style={styles.timeLabel}>{timeLabel(currDisplayDuration)}</Text>
           </View>
         </View>
       )}
@@ -593,7 +585,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         </View>
       )}
       {currAdBreak && showTruexAd && (
-        <TruexAd vastConfigUrl={currAdBreak?.vastUrl} onAdEvent={onAdEvent}/>
+        <TruexAd vastConfigUrl={currAdBreak?.vastUrl} onAdEvent={onAdEvent} />
       )}
     </View>
   );
