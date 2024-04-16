@@ -585,7 +585,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         </View>
       )}
       {currAdBreak && showTruexAd && (
-        <TruexAd vastConfigUrl={currAdBreak?.vastUrl} onAdEvent={onAdEvent} />
+        <TruexAd vastConfigUrl={currAdBreak.vastUrl} onAdEvent={onAdEvent} />
       )}
     </View>
   );
