@@ -16,12 +16,12 @@ import {
 } from './video/AdBreak';
 
 import { VideoStreamConfig } from './video/VideoStreamConfig';
-import videoStreamJson from './data/video-stream.json';
 import { AdEventHandler, TruexAd, TruexAdEvent } from '@truex/ad-renderer-kepler';
 import { HWEvent, Image, useTVEventHandler } from '@amzn/react-native-kepler';
 import pauseIcon from './assets/pause.png';
 import playIcon from './assets/play.png';
 
+import videoStreamJson from './data/video-stream.json';
 const videoStream = videoStreamJson as VideoStreamConfig;
 
 const disableSeeksInAds = false; // enable for demo purposes, set to true normally
@@ -269,7 +269,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     (adBreak: AdBreak | undefined) => {
       setCurrAdBreak(adBreak);
 
-      const isTruex = adBreak?.isTruexAd() || false;
+      const isTruex = adBreak?.isTruexAd || false;
       setShowTruexAd(isTruex);
 
       hasAdCredit.current = false;
@@ -279,7 +279,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
       if (isTruex) {
         console.log(`*** showing truex ad`);
-        // stop the ad videos, will resume later once truex ad completes
+        // pause the ad videos, will resume later once truex ad completes
         pause();
       } else if (adBreak) {
         console.log(`*** showing regular ad break`);
