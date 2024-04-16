@@ -208,7 +208,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
       video.autoplay = false;
       video.pause();
       video.load();
-      setTimeout(() => showVideo(), 50);
+      showVideo();
     });
 
     return () => {
@@ -219,7 +219,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const onSurfaceViewCreated = (surfaceHandle: string): void => {
     console.log('*** video surface created: ' + surfaceHandle);
     surfaceRef.current = surfaceHandle;
-    setTimeout(() => showVideo(), 50);
+    showVideo();
   };
 
   const [isPlaying, setPlaying] = useState(false);
