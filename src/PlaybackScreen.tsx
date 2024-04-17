@@ -255,14 +255,14 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     console.log('*** play');
     setPlaying(true);
     showControls(true);
-    setTimeout(() => video.play(), 100);
+    setTimeout(() => video.play(), 100); // avoid crashes by using a separate "thread"
   }, [video, showControls]);
 
   const pause = useCallback(() => {
     console.log('*** pause');
     setPlaying(false);
     showControls(true, false);
-    setTimeout(() => video.pause(), 100);
+    setTimeout(() => video.pause(), 100); // avoid crashes by using a separate "thread"
   }, [video, showControls]);
 
   const showAdBreak = useCallback(
