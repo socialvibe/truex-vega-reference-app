@@ -34,6 +34,10 @@ export class AdBreak {
     this.endTime = 0;
   }
 
+  get isTruexAd(): boolean {
+    return this.vastUrl.includes('truex.com');
+  }
+
   includesTime(streamTime: number): boolean {
     return this.startTime <= streamTime && streamTime <= this.endTime;
   }
@@ -58,7 +62,7 @@ function parseTimeLabel(hhmmss: string): number {
   return seconds + minutes * 60 + hours * 60 * 60;
 }
 
-export function getAdBreaks(adBreakConfigs: AdBreakConfig[]) {
+export function getAdBreaks(adBreakConfigs: AdBreakConfig[]): AdBreak[] {
   const adBreaks = adBreakConfigs?.map(config => new AdBreak(config)) || [];
 
   // Correct ad display times into raw video times for the actual time in the overall video.
@@ -72,12 +76,12 @@ export function getAdBreaks(adBreakConfigs: AdBreakConfig[]) {
   return adBreaks;
 }
 
-export function hasAdBreakAt(streamTime: number, adPlaylist: AdBreak[]) {
+export function hasAdBreakAt(streamTime: number, adPlaylist: AdBreak[]): boolean {
   const adBreak = getAdBreakAt(streamTime, adPlaylist);
   return !!adBreak;
 }
 
-export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[]) {
+export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[]): AdBreak | undefined {
   if (adPlaylist) {
     for (const index in adPlaylist) {
       const adBreak = adPlaylist[index];
@@ -89,7 +93,7 @@ export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[]) {
   return undefined;
 }
 
-export function getNextAdBreak(streamTime: number, adPlaylist: AdBreak[]) {
+export function getNextAdBreak(streamTime: number, adPlaylist: AdBreak[]): AdBreak | undefined {
   if (adPlaylist) {
     for (const index in adPlaylist) {
       const adBreak = adPlaylist[index];
