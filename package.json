@@ -35,7 +35,7 @@
     "@amzn/react-navigation__stack": "~2.0.0",
     "react": "18.2.0",
     "react-native": "0.72.0",
-    "@truex/ad-renderer-kepler": "git+ssh://git@github.com:socialvibe/TruexAdRenderer-Kepler.git#0.1.15"
+    "@truex/ad-renderer-kepler": "git+ssh://git@github.com:socialvibe/TruexAdRenderer-Kepler.git#0.1.16"
   },
   "devDependencies": {
     "@amzn/kepler-cli-platform": "^0",
