@@ -85,7 +85,7 @@ export function getAdBreakAt(streamTime: number, adPlaylist: AdBreak[]): AdBreak
   if (adPlaylist) {
     for (const index in adPlaylist) {
       const adBreak = adPlaylist[index];
-      if (adBreak.startTime <= streamTime && streamTime <= adBreak.endTime) {
+      if (adBreak.includesTime(streamTime)) {
         return adBreak;
       }
     }
