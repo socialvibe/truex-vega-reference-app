@@ -11,16 +11,28 @@
     "lint:fix": "eslint src tst --ext .ts,.tsx --fix",
     "compile": "tsc -p tsconfig.json",
     "link-tar": "npm link @truex/ad-renderer-kepler",
+
     "build": "npm run compile",
     "release": "npm-run-all lint test compile",
-    "kepler-build": "kepler build -b Debug",
-    "kepler-run": "kepler run-kepler build/vega-tv2023-aarch64-debug/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
+
+    "kepler-build-debug": "kepler build -b Debug",
     "kepler-build-release": "kepler build -b Release",
+
+    "kepler-run-debug": "kepler run-kepler build/vega-tv2023-aarch64-debug/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
     "kepler-run-release": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
     "kepler-simulator": "kepler device simulator start",
     "kepler-fast-refresh": "kepler device start-port-forwarding --device Simulator -p 8081 --forward false",
+
     "kepler-log": "kepler device start-log-stream",
-    "kepler-log-stop": "kepler device stop-log-stream"
+    "kepler-log-stop": "kepler device stop-log-stream",
+
+    "__comment__": "For installing on the actual kepler stick:",
+    "kepler-device-debug": "run-s kepler-push-debug kepler-install kepler-launch",
+    "kepler-device-release": "run-s kepler-push-release kepler-install kepler-launch",
+    "kepler-push-debug": "vda push build/vega-tv2023-armv7-debug/truexkeplerrefapp_armv7.vpkg /tmp",
+    "kepler-push-release": "vda push build/vega-tv2023-armv7-release/truexkeplerrefapp_armv7.vpkg /tmp",
+    "kepler-install": "vda shell vpm install /tmp/truexkeplerrefapp_armv7.vpkg",
+    "kepler-launch": "vda shell vlcm launch-app orpheus://com.truex.keplerrefapp.main"
   },
   "dependencies": {
     "@amzn/keplerscript-react-native-reanimated": "~2.0.0",
@@ -35,7 +47,7 @@
     "@amzn/react-navigation__stack": "~2.0.0",
     "react": "18.2.0",
     "react-native": "0.72.0",
-    "@truex/ad-renderer-kepler": "git+ssh://git@github.com:socialvibe/TruexAdRenderer-Kepler.git#0.1.16"
+    "@truex/ad-renderer-kepler": "git+ssh://git@github.com:socialvibe/TruexAdRenderer-Kepler.git#0.1.18"
   },
   "devDependencies": {
     "@amzn/kepler-cli-platform": "^0",

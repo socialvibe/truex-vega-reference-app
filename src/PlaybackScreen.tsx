@@ -17,7 +17,7 @@ import {
 
 import { VideoStreamConfig } from './video/VideoStreamConfig';
 import { AdEventHandler, TruexAd, TruexAdEvent } from '@truex/ad-renderer-kepler';
-import { HWEvent, Image, useTVEventHandler } from '@amzn/react-native-kepler';
+import { BackHandler, HWEvent, Image, useTVEventHandler } from "@amzn/react-native-kepler";
 import pauseIcon from './assets/pause.png';
 import playIcon from './assets/play.png';
 
@@ -515,14 +515,19 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     [adPlaylist, currStreamTime, currContentTime, currAdBreak, currDisplayDuration, seekTo, showControls]
   );
 
+  useEffect(() => {
+    const onBackHandler = () => {
+      navigateBack();
+      return true; // handled
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackHandler);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackHandler);
+  });
+
   const onHWEvent = useCallback((evt: HWEvent) => {
     if (showTruexAd) return; // do not interfere with Truex's own interactive processing.
     if (evt.eventKeyAction !== 0) return; // ignore key up events
     switch (evt.eventType) {
-      case 'back':
-        navigateBack();
-        break;
-
       case 'playpause':
       case 'select':
         if (video.paused) {
