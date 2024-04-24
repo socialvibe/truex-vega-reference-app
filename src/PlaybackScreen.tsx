@@ -256,9 +256,10 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     console.log('*** play');
     setPlaying(true);
     showControls(true);
+    // avoid crashes by using a separate "thread"
     setTimeout(() => {
       video.play().then(() => afterPlaying?.());
-    }, 100); // avoid crashes by using a separate "thread"
+    }, 100);
   }, [video, showControls]);
 
   const pause = useCallback(() => {
@@ -325,7 +326,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
       } else {
         console.log('*** seekTo: ' + timeDebug(newTarget, adPlaylist));
         setSeekTarget(newTarget);
-        setTimeout(() => video.currentTime = newTarget, 100); // do actual seek in its own "thread"
+        video.currentTime = newTarget;
       }
     },
     [video, adPlaylist]
@@ -365,9 +366,12 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     const preRoll = getAdBreakAt(0, adPlaylist);
     showAdBreak(preRoll);
 
-    if (!preRoll && canPlayVideo) {
-      // Start the initial playback.
-      play();
+    if (canPlayVideo) {
+      // Start the initial playback to ensure the video is loaded up.
+      play(() => {
+        // But pause immediately if we have a preroll.
+        if (preRoll) pause();
+      });
     }
 
     // Ensure timer is cleaned up.

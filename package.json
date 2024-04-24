@@ -18,29 +18,29 @@
     "kepler-build-debug": "kepler build -b Debug",
     "kepler-build-release": "kepler build -b Release",
 
-    "kepler-run-debug": "kepler run-kepler build/vega-tv2023-aarch64-debug/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
-    "kepler-run-release": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
-    "kepler-simulator": "kepler device simulator start",
+    "kepler-simulator-debug": "kepler run-kepler build/vega-tv2023-aarch64-debug/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
+    "kepler-simulator-release": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
+    "kepler-simulator-start": "kepler device simulator start",
     "kepler-fast-refresh": "kepler device start-port-forwarding --device Simulator -p 8081 --forward false",
 
     "kepler-log": "kepler device start-log-stream",
     "kepler-log-stop": "kepler device stop-log-stream",
 
     "__comment__": "For installing on the actual kepler stick:",
-    "kepler-device-debug": "run-s kepler-push-debug kepler-install kepler-launch",
-    "kepler-device-release": "run-s kepler-push-release kepler-install kepler-launch",
+    "kepler-device-debug": "run-s kepler-push-debug kepler-device-stop kepler-install kepler-launch",
+    "kepler-device-release": "run-s kepler-push-release kepler-device-stop kepler-install kepler-launch",
     "kepler-push-debug": "vda push build/vega-tv2023-armv7-debug/truexkeplerrefapp_armv7.vpkg /tmp",
     "kepler-push-release": "vda push build/vega-tv2023-armv7-release/truexkeplerrefapp_armv7.vpkg /tmp",
     "kepler-install": "vda shell vpm install /tmp/truexkeplerrefapp_armv7.vpkg",
     "kepler-launch": "vda shell vlcm launch-app orpheus://com.truex.keplerrefapp.main",
-    "kepler-device-stop": "vda shell vlcm terminate-app --pkg-id com.truex.keplerrefapp.main"
+    "kepler-device-stop": "vda shell vlcm terminate-app --pkg-id com.truex.keplerrefapp"
   },
   "dependencies": {
     "@amzn/keplerscript-react-native-reanimated": "~2.0.0",
     "@amzn/react-native-kepler": "~2.0.0",
     "@amzn/react-native-safe-area-context": "~2.0.0",
     "@amzn/react-native-screens": "~2.0.0",
-    "@amzn/react-native-w3cmedia": "~2.1.1",
+    "@amzn/react-native-w3cmedia": "~2.1.3",
     "@amzn/react-navigation__core": "~2.0.0",
     "@amzn/react-navigation__drawer": "~2.0.0",
     "@amzn/react-navigation__native": "~2.0.0",
