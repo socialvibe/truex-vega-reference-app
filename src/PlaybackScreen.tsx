@@ -344,13 +344,12 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         case TruexAdEvent.AdCompleted:
         case TruexAdEvent.AdError:
         case TruexAdEvent.NoAdsAvailable:
-          play(() => {
-            if (hasAdCredit.current && afterAdResumeTarget.current !== undefined) {
-              // skip over the fallback ads.
-              seekTo(afterAdResumeTarget.current);
-            }
-            // keep playing either the fallback ads or else main video
-          });
+          // Resume playback.
+          play();
+          if (hasAdCredit.current && afterAdResumeTarget.current !== undefined) {
+            // Skip over the fallback ads.
+            seekTo(afterAdResumeTarget.current);
+          }
           setShowTruexAd(false);
           break;
       }
