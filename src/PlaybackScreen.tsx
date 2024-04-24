@@ -229,6 +229,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const [currStreamTime, setCurrStreamTime] = useState(0);
 
   const [currAdBreak, setCurrAdBreak] = useState<AdBreak | undefined>();
+  const currAdBreakRef = useRef<AdBreak | undefined>(); // use to reduce re-renders, see video event listeners below
   const [showTruexAd, setShowTruexAd] = useState(false);
 
   const hasAdCredit = useRef(false);
@@ -251,11 +252,13 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     }
   }, []);
 
-  const play = useCallback(() => {
+  const play = useCallback((afterPlaying?: () => void) => {
     console.log('*** play');
     setPlaying(true);
     showControls(true);
-    setTimeout(() => video.play(), 100); // avoid crashes by using a separate "thread"
+    setTimeout(() => {
+      video.play().then(() => afterPlaying?.());
+    }, 100); // avoid crashes by using a separate "thread"
   }, [video, showControls]);
 
   const pause = useCallback(() => {
@@ -268,6 +271,9 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const showAdBreak = useCallback(
     (adBreak: AdBreak | undefined) => {
       setCurrAdBreak(adBreak);
+
+      // Also set the ref, so allow reduced dependency re-renders.
+      currAdBreakRef.current = adBreak;
 
       const isTruex = adBreak?.isTruexAd || false;
       setShowTruexAd(isTruex);
@@ -314,15 +320,15 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const seekTo = useCallback(
     (newTime: number) => {
       const newTarget = Math.max(0, Math.min(newTime, video.duration));
-      if (newTarget == currStreamTime) {
+      if (newTarget == video.currentTime) {
         console.log('*** seekTo ignored: ' + timeDebug(newTarget, adPlaylist));
       } else {
         console.log('*** seekTo: ' + timeDebug(newTarget, adPlaylist));
         setSeekTarget(newTarget);
-        video.currentTime = newTarget;
+        setTimeout(() => video.currentTime = newTarget, 100); // do actual seek in its own "thread"
       }
     },
-    [video, adPlaylist, currStreamTime]
+    [video, adPlaylist]
   );
 
   const onAdEvent: AdEventHandler = useCallback<AdEventHandler>(
@@ -337,11 +343,13 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         case TruexAdEvent.AdCompleted:
         case TruexAdEvent.AdError:
         case TruexAdEvent.NoAdsAvailable:
-          if (hasAdCredit.current && afterAdResumeTarget.current !== undefined) {
-            // skip over the fallback ads.
-            seekTo(afterAdResumeTarget.current);
-          }
-          play(); // resume either fallback ads or else main video
+          play(() => {
+            if (hasAdCredit.current && afterAdResumeTarget.current !== undefined) {
+              // skip over the fallback ads.
+              seekTo(afterAdResumeTarget.current);
+            }
+            // keep playing either the fallback ads or else main video
+          });
           setShowTruexAd(false);
           break;
       }
@@ -373,8 +381,8 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
     const onTimeUpdate = (event: any) => {
       const newStreamTime = Math.floor(video.currentTime);
-      let newSeekTarget = seekTarget;
-      let newAdBreak: AdBreak | undefined = currAdBreak;
+      let newSeekTarget: number | undefined;
+      let newAdBreak: AdBreak | undefined = currAdBreakRef.current;
       setCurrStreamTime(prevStreamTime => {
         if (prevStreamTime == newStreamTime) return prevStreamTime;
 
@@ -405,31 +413,35 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         return newStreamTime;
       });
 
-      if (currAdBreak != newAdBreak) {
+      if (currAdBreakRef.current != newAdBreak) {
         showAdBreak(newAdBreak);
       }
 
       // Process any seek changes.
-      if (newSeekTarget != seekTarget) {
-        seekTo(newSeekTarget);
-      } else if (seekTarget >= 0 && Math.abs(seekTarget - newStreamTime) <= 2) {
-        // backup to ensure we know when seeking is complete
-        setSeekTarget(-1);
-      }
+      setSeekTarget(prevTarget => {
+        if (newSeekTarget && newSeekTarget != prevTarget) {
+          return newSeekTarget; // we have a new seek target
+        } else if (prevTarget >= 0 && Math.abs(prevTarget - newStreamTime) <= 2) {
+          return -1; // backup to ensure we know when seeking is complete
+        }
+        return prevTarget;
+      });
     };
 
+    console.log('*** video adding event listeners');
     video.addEventListener('playing', onPlaying);
     video.addEventListener('paused', onPaused);
     video.addEventListener('timeupdate', onTimeUpdate);
     video.addEventListener('seeked', onSeeked);
 
     return () => {
+      console.log('*** video removing event listeners');
       video.removeEventListener('playing', onPlaying);
       video.removeEventListener('paused', onPaused);
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('seeked', onSeeked);
     };
-  }, [video, currAdBreak, adPlaylist, seekTarget, seekTo, showAdBreak]);
+  }, [video, adPlaylist, showAdBreak]);
 
   const progressBarLayout = useMemo(() => {
     const progressBar = styles.timelineProgress;
@@ -481,7 +493,9 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
           ? Math.max(minStepSeconds, Math.round(currDisplayDuration / maxSeekSteps))
           : minStepSeconds;
 
-      let newTarget = Math.max(0, currStreamTime + steps * stepSeconds);
+
+      const initialTarget = Math.max(0, currStreamTime + steps * stepSeconds);
+      let newTarget = initialTarget;
 
       if (currAdBreak) {
         // We are stepping thru an ad (not usually supported).
@@ -507,6 +521,9 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
             }
           }
         }
+
+//         console.log(`*** seekStep: step: ${steps} stepS: ${stepSeconds}
+// *** iT: ${timeDebug(initialTarget, adPlaylist)} cT: ${timeDebug(newContentTarget, adPlaylist)} nT: ${timeDebug(newTarget, adPlaylist)}`)
       }
 
       seekTo(newTarget);
@@ -555,7 +572,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         seekStep(-1);
         break;
     }
-  }, [navigateBack, video, showTruexAd, pause, play, seekStep]);
+  }, [video, showTruexAd, pause, play, seekStep]);
 
   useTVEventHandler(onHWEvent);
 

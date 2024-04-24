@@ -32,7 +32,8 @@
     "kepler-push-debug": "vda push build/vega-tv2023-armv7-debug/truexkeplerrefapp_armv7.vpkg /tmp",
     "kepler-push-release": "vda push build/vega-tv2023-armv7-release/truexkeplerrefapp_armv7.vpkg /tmp",
     "kepler-install": "vda shell vpm install /tmp/truexkeplerrefapp_armv7.vpkg",
-    "kepler-launch": "vda shell vlcm launch-app orpheus://com.truex.keplerrefapp.main"
+    "kepler-launch": "vda shell vlcm launch-app orpheus://com.truex.keplerrefapp.main",
+    "kepler-device-stop": "vda shell vlcm terminate-app --pkg-id com.truex.keplerrefapp.main"
   },
   "dependencies": {
     "@amzn/keplerscript-react-native-reanimated": "~2.0.0",
