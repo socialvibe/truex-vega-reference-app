@@ -16,12 +16,20 @@ id = "com.truex.keplerrefapp.main"
 runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
 launch-type = "singleton"
 
+# For rendering web content
+[[wants.service]]
+id = "com.amazon.webview.renderer_service"
+
+# For video playback
 [[wants.service]]
 id = "com.amazon.mediametrics.service" # Required for metrics service
-
 [[wants.service]]
 id = "com.amazon.media.server"
-
 [[wants.service]]
 id = "com.amazon.media.playersession.service"
 
+# For audio playback
+[[wants.service]]
+id = "com.amazon.audio.stream"
+[[wants.service]]
+id = "com.amazon.audio.control"
