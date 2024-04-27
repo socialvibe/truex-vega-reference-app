@@ -271,28 +271,32 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   const showAdBreak = useCallback(
     (adBreak: AdBreak | undefined) => {
-      setCurrAdBreak(adBreak);
+      setCurrAdBreak(prevAdBreak => {
+        if (prevAdBreak == adBreak) return prevAdBreak;
 
-      // Also set the ref, so allow reduced dependency re-renders.
-      currAdBreakRef.current = adBreak;
+        // Also set the ref, so allow reduced dependency re-renders.
+        currAdBreakRef.current = adBreak;
 
-      const isTruex = adBreak?.isTruexAd || false;
-      setShowTruexAd(isTruex);
+        const isTruex = adBreak?.isTruexAd || false;
+        setShowTruexAd(isTruex);
 
-      hasAdCredit.current = false;
+        hasAdCredit.current = false;
 
-      // ensure we don't see the last second of the ad
-      afterAdResumeTarget.current = adBreak ? adBreak.endTime + 1 : undefined;
+        // ensure we don't see the last second of the ad
+        afterAdResumeTarget.current = adBreak ? adBreak.endTime + 1 : undefined;
 
-      if (isTruex) {
-        console.log(`*** showing truex ad`);
-        // pause the ad videos, will resume later once truex ad completes
-        pause();
-      } else if (adBreak) {
-        console.log(`*** showing regular ad break`);
-      } else {
-        console.log(`*** removing ad break`);
-      }
+        if (isTruex) {
+          console.log(`*** showing truex ad`);
+          // pause the ad videos, will resume later once truex ad completes
+          pause();
+        } else if (adBreak) {
+          console.log(`*** showing regular ad break`);
+        } else {
+          console.log(`*** removing ad break`);
+        }
+
+        return adBreak;
+      });
     },
     [pause]
   );
@@ -375,7 +379,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
     // Ensure timer is cleaned up.
     return () => stopControlsDisplayTimer();
-  }, [canPlayVideo, play, showControls, adPlaylist, showAdBreak]);
+  }, [canPlayVideo, play, pause, showControls, adPlaylist, showAdBreak]);
 
   useEffect(() => {
     const onPlaying = () => setPlaying(true);
