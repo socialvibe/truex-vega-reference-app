@@ -545,8 +545,9 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   });
 
   const onHWEvent = useCallback((evt: HWEvent) => {
-    if (showTruexAd) return; // do not interfere with Truex's own interactive processing.
     if (evt.eventKeyAction !== 0) return; // ignore key up events
+    console.log(`*** key event: ${evt.eventType} showTruexAd: ${showTruexAd}`);
+    if (showTruexAd) return; // do not interfere with Truex's own interactive processing.
     switch (evt.eventType) {
       case 'playpause':
       case 'select':
