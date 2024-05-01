@@ -7,7 +7,7 @@ import {
   signalAdError,
   signalAdEvent,
   TruexAdEvent
-} from "./TruexAdEvent";
+} from './TruexAdEvent';
 import { WebView } from '@amzn/webview';
 import { TruexAdOptions } from './TruexAdOptions';
 import {
@@ -70,8 +70,7 @@ export function TruexAd(adProps: TruexAdProps) {
       case 'info':
       case 'error':
       case 'warn': {
-        const consoleAny = console as any; // work around type errors
-        consoleAny[message.type](`TruexAd: WebView ${message.type}: ${message.data}`);
+        console.log(`TruexAd: WebView ${message.type}: ${message.data}`);
         break;
       }
 
@@ -202,7 +201,14 @@ try {
   
   window.hostApp = hostApp;
   if (window.initializeApplication) {
-    window.initializeApplication();
+    window.initializeApplication().then(() => {
+      const adOverlay = document.getElementById('truex-ad-overlay');
+      const adHasFocus = !!(adOverlay && adOverlay == document.activeElement);
+      console.log('ad overlay has focus: ' + adHasFocus);
+      adOverlay.addEventListener("focusout", e => {      
+        console.log('ad overlay focus lost');
+      });
+    });
   } else {
     postTarMessage('log', 'initializeApplication not present at injection');
   }    
