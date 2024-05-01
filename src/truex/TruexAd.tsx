@@ -32,7 +32,7 @@ export function TruexAd(adProps: TruexAdProps) {
   const [adComplete, setAdComplete] = useState(false);
 
   const webSource = useMemo(() => {
-    return { uri: `https://ctv.truex.com/android/bridge/v2/branch-test/task_pi-2692_support-tar-kepler-webview/index.html?test=1` };
+    return { uri: `https://ctv.truex.com/android/bridge/v2/branch-test/task_pi-2692_support-tar-kepler-webview/index.html` };
   }, []);
 
   const adContainerRef = useRef<View|null>(null);
@@ -57,20 +57,23 @@ export function TruexAd(adProps: TruexAdProps) {
 
   const onWebViewMessage = useCallback((msgEvent: WebViewMessageEvent) => {
     const message = JSON.parse(msgEvent.nativeEvent.data);
-    const adEventJson: any = JSON.parse(message.data);
-    const adEvent = adEventJson.type as TruexAdEvent;
-    const adEventData = adEventJson.data as AdEventData;
     switch (message.type) {
-      case 'signalAdEvent':
+      case 'signalAdEvent': {
+        const adEventJson: any = JSON.parse(message.data);
+        const adEvent = adEventJson.type as TruexAdEvent;
+        const adEventData = adEventJson.data as AdEventData;
         signalAdEvent(adEvent, adEventWrapper, adEventData);
         break;
+      }
 
       case 'log':
       case 'info':
       case 'error':
-      case 'warn':
-        (console as any)[message.type](`TruexAd: WebView ${message.type}: ${message.data}`);
+      case 'warn': {
+        const consoleAny = console as any; // work around type errors
+        consoleAny[message.type](`TruexAd: WebView ${message.type}: ${message.data}`);
         break;
+      }
 
       default:
         console.warn(`TruexAd: unknown web view message: ${message.type}: ${message.data}`);
@@ -87,7 +90,7 @@ export function TruexAd(adProps: TruexAdProps) {
     console.log(`TruexAd: onWebViewLoad: ${event.nativeEvent.url}`);
     if (!didInjectionRef.current) {
       didInjectionRef.current = true;
-      //injectAdParameters(webRef.current, adProps, onAdEvent); // Start the TAR web view running.
+      injectAdParameters(webRef.current, adProps, onAdEvent); // Start the TAR web view running.
     }
   }, [adProps, onAdEvent]);
 
@@ -153,7 +156,7 @@ function postTarMessage(type, data) {
 }
 
 try {
-  postTarMessage('log', 'injection running: has init: ' + !!window.initializeApplication);
+  postTarMessage('log', 'constructing hostApp');
   
   // TAR Web Bridge expects a hostApp functional interface:
   const hostApp = {
@@ -187,7 +190,7 @@ try {
         return function(...args) {
             const msg = args.join(' ');
             actions[kind].apply(console, args);
-            postTarMessage('log', msg);
+            postTarMessage(kind, msg);
         };
     }
 
@@ -197,16 +200,12 @@ try {
     console.error = logAction('error');
   })();
   
-  setTimeout(() => { 
-    postTarMessage('log', 'after injection: has init: ' + !!window.initializeApplication);
-    if (window.initializeApplication) {
-      window.hostApp = hostApp;
-      window.initializeApplication();
-    } else {
-      postTarMessage('log', 'initializeApplication not present at injection');
-    }    
-  }, 100);
-
+  window.hostApp = hostApp;
+  if (window.initializeApplication) {
+    window.initializeApplication();
+  } else {
+    postTarMessage('log', 'initializeApplication not present at injection');
+  }    
   postTarMessage('log', 'injection ended');
 } catch (err) {
   postTarMessage('log', 'injection error: ' + err);
