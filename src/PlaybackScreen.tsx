@@ -17,12 +17,15 @@ import {
 } from './video/AdBreak';
 
 import { VideoStreamConfig } from './video/VideoStreamConfig';
-import { AdEventHandler, TruexAd, TruexAdEvent, TruexAdOptions } from "@truex/ad-renderer-kepler";
-import { BackHandler, FocusManager, HWEvent, Image, useTVEventHandler } from "@amzn/react-native-kepler";
+import { BackHandler, HWEvent, Image, useTVEventHandler } from '@amzn/react-native-kepler';
 import pauseIcon from './assets/pause.png';
 import playIcon from './assets/play.png';
 
 import videoStreamJson from './data/video-stream.json';
+import { TruexAdOptions } from './truex/TruexAdOptions';
+import { AdEventHandler, TruexAdEvent } from './truex/TruexAdEvent';
+import TruexAd from './truex/TruexAd';
+
 const videoStream = videoStreamJson as VideoStreamConfig;
 
 const disableSeeksInAds = false; // enable for demo purposes, set to true normally
