@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import uuid from 'react-native-uuid';
 import { StackScreenProps } from '@amzn/react-navigation__stack';
 
 import { KeplerVideoSurfaceView, VideoPlayer } from '@amzn/react-native-w3cmedia';
@@ -16,8 +17,8 @@ import {
 } from './video/AdBreak';
 
 import { VideoStreamConfig } from './video/VideoStreamConfig';
-import { AdEventHandler, TruexAd, TruexAdEvent } from '@truex/ad-renderer-kepler';
-import { BackHandler, HWEvent, Image, useTVEventHandler } from "@amzn/react-native-kepler";
+import { AdEventHandler, TruexAd, TruexAdEvent, TruexAdOptions } from "@truex/ad-renderer-kepler";
+import { BackHandler, FocusManager, HWEvent, Image, useTVEventHandler } from "@amzn/react-native-kepler";
 import pauseIcon from './assets/pause.png';
 import playIcon from './assets/play.png';
 
@@ -164,6 +165,7 @@ function AdBreakMarker({ contentTime, duration }: AdBreakMarkerProps) {
 }
 
 export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
+  const pageRef = useRef<View | null>(null);
   const video = useMemo(() => new VideoPlayer(), []);
 
   // Would be passed in as a page route arg in a real app, as would the video steam itself.
@@ -231,6 +233,14 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const [currAdBreak, setCurrAdBreak] = useState<AdBreak | undefined>();
   const currAdBreakRef = useRef<AdBreak | undefined>(); // use to reduce re-renders, see video event listeners below
   const [showTruexAd, setShowTruexAd] = useState(false);
+
+  const tarOptions = useMemo<TruexAdOptions>(() => {
+    const options: TruexAdOptions = {
+      // Ensure a unique user id to avoid minimize no ads available
+      userAdvertisingId: uuid.v4() as string
+    };
+    return options;
+  }, []);
 
   const hasAdCredit = useRef(false);
   const afterAdResumeTarget = useRef<number | undefined>();
@@ -355,6 +365,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
             seekTo(afterAdResumeTarget.current);
           }
           setShowTruexAd(false);
+          pageRef.current?.focus(); // ensure our page has the focus again
           break;
       }
     },
@@ -585,7 +596,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   useTVEventHandler(onHWEvent);
 
   return (
-    <View style={styles.playbackPage}>
+    <View style={styles.playbackPage} ref={pageRef}>
       <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} />
       {isShowingControls && !showTruexAd && (
         <View style={styles.controlBar}>
@@ -615,7 +626,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         </View>
       )}
       {currAdBreak && showTruexAd && (
-        <TruexAd vastConfigUrl={currAdBreak.vastUrl} onAdEvent={onAdEvent} />
+        <TruexAd vastConfigUrl={currAdBreak.vastUrl} options={tarOptions} onAdEvent={onAdEvent} />
       )}
     </View>
   );
