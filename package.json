@@ -8,7 +8,6 @@
     "clean": "rm -rf buildinfo.json dist",
     "start": "npx react-native start",
     "lint": "eslint src --ext .ts,.tsx",
-    "lint:fix": "eslint src tst --ext .ts,.tsx --fix",
     "compile": "tsc -p tsconfig.json",
     "link-tar": "npm link @truex/ad-renderer-kepler",
 

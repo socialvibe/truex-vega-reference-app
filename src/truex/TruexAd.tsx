@@ -80,14 +80,14 @@ export function TruexAd(adProps: TruexAdProps) {
 
   const onWebViewError = useCallback((event: WebViewErrorEvent) => {
     const e = event.nativeEvent;
-    console.log(`TruexAd: onWebViewError: ${e.code} - ${e.description}`);
+    console.log(`TruexAd: onWebViewError: ${e.code} - ${e.description} - ${e.url}`);
   }, []);
 
   const onWebViewLoad = useCallback((event: WebViewNavigationEvent) => {
     console.log(`TruexAd: onWebViewLoad: ${event.nativeEvent.url}`);
     if (!didInjectionRef.current) {
       didInjectionRef.current = true;
-      injectAdParameters(webRef.current, adProps, onAdEvent); // Start the TAR web view running.
+      //injectAdParameters(webRef.current, adProps, onAdEvent); // Start the TAR web view running.
     }
   }, [adProps, onAdEvent]);
 
@@ -100,6 +100,7 @@ export function TruexAd(adProps: TruexAdProps) {
       <WebView ref={webRef} style={styles.webView} source={webSource}
                javaScriptEnabled={true} allowSystemKeyEvents={true}
                mediaPlaybackRequiresUserAction={false}
+               // hasTVPreferredFocus={true}
                onMessage={onWebViewMessage}
                onError={onWebViewError}
                onLoad={onWebViewLoad}
