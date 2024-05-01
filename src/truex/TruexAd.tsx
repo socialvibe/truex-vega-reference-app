@@ -118,7 +118,6 @@ const styles = StyleSheet.create({
     margin: 0,
     width: '100%',
     height: '100%',
-    position: 'relative',
     backgroundColor: 'black',
     display: 'flex',
     flex: 1
@@ -201,18 +200,10 @@ try {
   
   window.hostApp = hostApp;
   if (window.initializeApplication) {
-    window.initializeApplication().then(() => {
-      const adOverlay = document.getElementById('truex-ad-overlay');
-      const adHasFocus = !!(adOverlay && adOverlay == document.activeElement);
-      console.log('ad overlay has focus: ' + adHasFocus);
-      adOverlay.addEventListener("focusout", e => {      
-        console.log('ad overlay focus lost');
-      });
-    });
+    window.initializeApplication();
   } else {
     postTarMessage('log', 'initializeApplication not present at injection');
   }    
-  postTarMessage('log', 'injection ended');
 } catch (err) {
   postTarMessage('log', 'injection error: ' + err);
   throw err;
@@ -223,16 +214,18 @@ try {
 
 function injectJS(context: string, jsCode: string, webView: any, onAdEvent: AdEventHandler) {
   if (!webView) {
-    console.error('TruexAd: no webView present to inject code with');
+    report('no webView present to inject code with');
     return;
   }
   try {
     console.log(`TruexAd: injecting ${context}`);
     webView.injectJavaScript(jsCode);
-    console.log('TruexAd: injection complete');
   } catch (err: any) {
-    const errMsg = 'could not inject webview code';
-    console.error(`TruexAd: ${errMsg}`, err);
+    report('could not inject webview code: ' + err);
+  }
+
+  function report(errMsg: string) {
+    console.error(`TruexAd: ${errMsg}`);
     signalAdError(errMsg, onAdEvent);
   }
 }
