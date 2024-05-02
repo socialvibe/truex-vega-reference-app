@@ -49,13 +49,7 @@ export function TruexAd(adProps: TruexAdProps) {
     const display = DeviceInfo.getDisplaySync();
     const appId = DeviceInfo.getBundleId();
     if (osName == 'unknown') {
-      // Use the system user agent for now until the above values are provided.
-      try {
-        return DeviceInfo.getUserAgentSync();
-      } catch (err) {
-        console.log('TruexAd: getUserAgent error: ' + err);
-        return 'Kepler unknown';
-      }
+      return DeviceInfo.getUserAgentSync();
     } else {
       return `Kepler Webview (${osName}; ${osVersion}-${osBuild}; ${display}) ${model} ${appId}`;
     }
@@ -171,7 +165,8 @@ function injectInitialStyles(webView: any, onAdEvent: AdEventHandler) {
 function injectAdParameters(webView: any, { vastConfigUrl, options }: TruexAdProps, onAdEvent: AdEventHandler) {
   const userId = options?.userAdvertisingId || DeviceInfo.getInstanceIdSync();
   const appId = options?.appId || DeviceInfo.getBundleId();
-  const debugWebView = options?.enableWebViewDebugging /* || config.buildEnv != 'prod' */ || false;
+  //const debugWebView = options?.enableWebViewDebugging /* || config.buildEnv != 'prod' */ || false;
+  const debugWebView = true;
   const jsCode = `    
 function postTarMessage(type, data) {
   setTimeout(() => window.ReactNativeWebView?.postMessage(JSON.stringify({ type, data })), 0);
