@@ -48,13 +48,16 @@ export function TruexAd(adProps: TruexAdProps) {
     const model = DeviceInfo.getModel();
     const display = DeviceInfo.getDisplaySync();
     const appId = DeviceInfo.getBundleId();
-    // Use the system user agent for now until the above values are provided.
-    //return `Kepler Webview (${osName}; ${osVersion}-${osBuild}; ${display}) ${model} ${appId}`;
-    try {
-      return DeviceInfo.getUserAgentSync();
-    } catch (err) {
-      console.log('TruexAd: getUserAgent error: ' + err);
-      return 'Kepler unknown';
+    if (osName == 'unknown') {
+      // Use the system user agent for now until the above values are provided.
+      try {
+        return DeviceInfo.getUserAgentSync();
+      } catch (err) {
+        console.log('TruexAd: getUserAgent error: ' + err);
+        return 'Kepler unknown';
+      }
+    } else {
+      return `Kepler Webview (${osName}; ${osVersion}-${osBuild}; ${display}) ${model} ${appId}`;
     }
   }, []);
 
