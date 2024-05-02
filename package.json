@@ -49,7 +49,7 @@
     "react": "18.2.0",
     "react-native": "0.72.0",
     "react-native-uuid": "~2.0.2",
-    "@truex/ad-renderer-kepler": "git+ssh://git@github.com:socialvibe/TruexAdRenderer-Kepler.git#0.2.22"
+    "@truex/ad-renderer-kepler": "git+ssh://git@github.com:socialvibe/TruexAdRenderer-Kepler.git#0.2.23"
   },
   "devDependencies": {
     "@amzn/kepler-cli-platform": "latest",
