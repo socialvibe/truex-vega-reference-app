@@ -1,6 +1,6 @@
 {
   "name": "@amzn/truexkeplerrefapp",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "files": [
     "dist"
   ],
@@ -8,7 +8,6 @@
     "clean": "rm -rf buildinfo.json dist",
     "start": "npx react-native start",
     "lint": "eslint src --ext .ts,.tsx",
-    "lint:fix": "eslint src tst --ext .ts,.tsx --fix",
     "compile": "tsc -p tsconfig.json",
     "link-tar": "npm link @truex/ad-renderer-kepler",
 
@@ -27,16 +26,17 @@
     "kepler-log-stop": "kepler device stop-log-stream",
 
     "__comment__": "For installing on the actual kepler stick:",
-    "kepler-device-debug": "run-s kepler-push-debug kepler-device-stop kepler-install kepler-launch",
-    "kepler-device-release": "run-s kepler-push-release kepler-device-stop kepler-install kepler-launch",
+    "kepler-device-debug": "run-s kepler-push-debug kepler-stop-app kepler-install kepler-start-app",
+    "kepler-device-release": "run-s kepler-push-release kepler-stop-app kepler-install kepler-start-app",
     "kepler-push-debug": "vda push build/vega-tv2023-armv7-debug/truexkeplerrefapp_armv7.vpkg /tmp",
     "kepler-push-release": "vda push build/vega-tv2023-armv7-release/truexkeplerrefapp_armv7.vpkg /tmp",
     "kepler-install": "vda shell vpm install /tmp/truexkeplerrefapp_armv7.vpkg",
-    "kepler-launch": "vda shell vlcm launch-app orpheus://com.truex.keplerrefapp.main",
-    "kepler-device-stop": "vda shell vlcm terminate-app --pkg-id com.truex.keplerrefapp"
+    "kepler-start-app": "kepler device launch-app -a com.truex.keplerrefapp.main",
+    "kepler-stop-app": "kepler device terminate-app -a com.truex.keplerrefapp.main"
   },
   "dependencies": {
     "@amzn/keplerscript-react-native-reanimated": "~2.0.0",
+    "@amzn/react-native-device-info": "~2.0.0",
     "@amzn/react-native-kepler": "~2.0.0",
     "@amzn/react-native-safe-area-context": "~2.0.0",
     "@amzn/react-native-screens": "~2.0.0",
