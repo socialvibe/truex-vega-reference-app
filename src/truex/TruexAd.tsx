@@ -168,6 +168,7 @@ function injectInitialStyles(webView: any, onAdEvent: AdEventHandler) {
 function injectAdParameters(webView: any, { vastConfigUrl, options }: TruexAdProps, onAdEvent: AdEventHandler) {
   const userId = options?.userAdvertisingId || DeviceInfo.getInstanceIdSync();
   const appId = options?.appId || DeviceInfo.getBundleId();
+  const debugWebView = options?.enableWebViewDebugging /* || config.buildEnv != 'prod' */ || false;
   const jsCode = `    
 function postTarMessage(type, data) {
   setTimeout(() => window.ReactNativeWebView?.postMessage(JSON.stringify({ type, data })), 0);
@@ -197,27 +198,29 @@ try {
   };
   
   // Forward console logs to the host.
-  (function() {
-    const actions = {
-      log: console.log.bind(console),
-      info: console.info.bind(console),
-      warn: console.warn.bind(console),
-      error: console.error.bind(console)
-    };
-
-    function logAction(kind) {
-        return function(...args) {
-            const msg = args.join(' ');
-            actions[kind].apply(console, args);
-            postTarMessage(kind, msg);
-        };
-    }
-
-    console.log = logAction('log');
-    console.info = logAction('info');
-    console.warn = logAction('warn');
-    console.error = logAction('error');
-  })();
+  if (${debugWebView}) {
+    (function() {
+      const actions = {
+        log: console.log.bind(console),
+        info: console.info.bind(console),
+        warn: console.warn.bind(console),
+        error: console.error.bind(console)
+      };
+  
+      function logAction(kind) {
+          return function(...args) {
+              const msg = args.join(' ');
+              actions[kind].apply(console, args);
+              postTarMessage(kind, msg);
+          };
+      }
+  
+      console.log = logAction('log');
+      console.info = logAction('info');
+      console.warn = logAction('warn');
+      console.error = logAction('error');
+    })();
+  }
   
   window.hostApp = hostApp;
   if (window.initializeApplication) {
