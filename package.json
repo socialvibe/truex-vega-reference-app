@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@amzn/keplerscript-react-native-reanimated": "~2.0.0",
+    "@amzn/react-native-device-info": "~2.0.0",
     "@amzn/react-native-kepler": "~2.0.0",
     "@amzn/react-native-safe-area-context": "~2.0.0",
     "@amzn/react-native-screens": "~2.0.0",

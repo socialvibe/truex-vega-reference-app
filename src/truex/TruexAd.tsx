@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import DeviceInfo from '@amzn/react-native-device-info';
 import {
   AdEventData,
   AdEventHandler,
@@ -39,6 +40,24 @@ export function TruexAd(adProps: TruexAdProps) {
   const webRef = useRef<typeof WebView | null>(null);
   const didInjectionRef = useRef(false);
 
+  // Use a user agent the clearly reports this as a Kepler device.
+  const userAgent = useMemo<string>(() => {
+    const osName = DeviceInfo.getSystemName();
+    const osVersion = DeviceInfo.getSystemVersion();
+    const osBuild = DeviceInfo.getBuildIdSync();
+    const model = DeviceInfo.getModel();
+    const display = DeviceInfo.getDisplaySync();
+    const appId = DeviceInfo.getBundleId();
+    // Use the system user agent for now until the above values are provided.
+    //return `Kepler Webview (${osName}; ${osVersion}-${osBuild}; ${display}) ${model} ${appId}`;
+    try {
+      return DeviceInfo.getUserAgentSync();
+    } catch (err) {
+      console.log('TruexAd: getUserAgent error: ' + err);
+      return 'Kepler unknown';
+    }
+  }, []);
+
   const adEventWrapper = useCallback<AdEventHandler>((event, data) => {
     if (isCompletionEvent(event)) {
       // Ensure the truex ad ux is no longer visible.
@@ -49,7 +68,6 @@ export function TruexAd(adProps: TruexAdProps) {
     onAdEvent(event, data);
   }, [onAdEvent]);
 
-  // Intercept the back action, just in case the webview fails to handle it, and we need to clear the UX.
   useEffect(() => {
     if (vastConfigUrl) console.log(`TruexAd: using vast config url: ${vastConfigUrl}`);
     injectInitialStyles(webRef.current, onAdEvent);
@@ -101,7 +119,7 @@ export function TruexAd(adProps: TruexAdProps) {
     <View style={styles.adContainer} ref={adContainerRef}>
       <WebView ref={webRef} style={styles.webView} source={webSource}
                javaScriptEnabled={true} allowSystemKeyEvents={true}
-               mediaPlaybackRequiresUserAction={false}
+               mediaPlaybackRequiresUserAction={false} userAgent={userAgent}
                // hasTVPreferredFocus={true}
                onMessage={onWebViewMessage}
                onError={onWebViewError}
@@ -148,6 +166,8 @@ function injectInitialStyles(webView: any, onAdEvent: AdEventHandler) {
 }
 
 function injectAdParameters(webView: any, { vastConfigUrl, options }: TruexAdProps, onAdEvent: AdEventHandler) {
+  const userId = options?.userAdvertisingId || DeviceInfo.getInstanceIdSync();
+  const appId = options?.appId || DeviceInfo.getBundleId();
   const jsCode = `    
 function postTarMessage(type, data) {
   setTimeout(() => window.ReactNativeWebView?.postMessage(JSON.stringify({ type, data })), 0);
@@ -170,7 +190,8 @@ try {
       }
       
       addParam('vastConfigUrl', ${JSON.stringify(vastConfigUrl)});
-      addParam('userAdvertisingId', ${JSON.stringify(options?.userAdvertisingId)});
+      addParam('userAdvertisingId', ${JSON.stringify(userId)});
+      addParam('appId', ${JSON.stringify(appId)});
       return JSON.stringify(params);
     }      
   };
