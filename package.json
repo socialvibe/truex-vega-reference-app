@@ -1,6 +1,6 @@
 {
   "name": "@amzn/truexkeplerrefapp",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "files": [
     "dist"
   ],
@@ -8,26 +8,38 @@
     "clean": "rm -rf buildinfo.json dist",
     "start": "npx react-native start",
     "lint": "eslint src --ext .ts,.tsx",
-    "lint:fix": "eslint src tst --ext .ts,.tsx --fix",
     "compile": "tsc -p tsconfig.json",
     "link-tar": "npm link @truex/ad-renderer-kepler",
+
     "build": "npm run compile",
     "release": "npm-run-all lint test compile",
-    "kepler-build": "kepler build -b Debug",
-    "kepler-run": "kepler run-kepler build/vega-tv2023-aarch64-debug/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
+
+    "kepler-build-debug": "kepler build -b Debug",
     "kepler-build-release": "kepler build -b Release",
-    "kepler-run-release": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
-    "kepler-simulator": "kepler device simulator start",
+
+    "kepler-simulator-debug": "kepler run-kepler build/vega-tv2023-aarch64-debug/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
+    "kepler-simulator-release": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
+    "kepler-simulator-start": "kepler device simulator start",
     "kepler-fast-refresh": "kepler device start-port-forwarding --device Simulator -p 8081 --forward false",
+
     "kepler-log": "kepler device start-log-stream",
-    "kepler-log-stop": "kepler device stop-log-stream"
+    "kepler-log-stop": "kepler device stop-log-stream",
+
+    "__comment__": "For installing on the actual kepler stick:",
+    "kepler-device-debug": "run-s kepler-push-debug kepler-stop-app kepler-install kepler-start-app",
+    "kepler-device-release": "run-s kepler-push-release kepler-stop-app kepler-install kepler-start-app",
+    "kepler-push-debug": "vda push build/vega-tv2023-armv7-debug/truexkeplerrefapp_armv7.vpkg /tmp",
+    "kepler-push-release": "vda push build/vega-tv2023-armv7-release/truexkeplerrefapp_armv7.vpkg /tmp",
+    "kepler-install": "vda shell vpm install /tmp/truexkeplerrefapp_armv7.vpkg",
+    "kepler-start-app": "kepler device launch-app -a com.truex.keplerrefapp.main",
+    "kepler-stop-app": "kepler device terminate-app -a com.truex.keplerrefapp.main"
   },
   "dependencies": {
     "@amzn/keplerscript-react-native-reanimated": "~2.0.0",
     "@amzn/react-native-kepler": "~2.0.0",
     "@amzn/react-native-safe-area-context": "~2.0.0",
     "@amzn/react-native-screens": "~2.0.0",
-    "@amzn/react-native-w3cmedia": "~2.1.1",
+    "@amzn/react-native-w3cmedia": "~2.1.3",
     "@amzn/react-navigation__core": "~2.0.0",
     "@amzn/react-navigation__drawer": "~2.0.0",
     "@amzn/react-navigation__native": "~2.0.0",
@@ -35,10 +47,11 @@
     "@amzn/react-navigation__stack": "~2.0.0",
     "react": "18.2.0",
     "react-native": "0.72.0",
-    "@truex/ad-renderer-kepler": "git+ssh://git@github.com:socialvibe/TruexAdRenderer-Kepler.git#0.1.16"
+    "react-native-uuid": "~2.0.2",
+    "@truex/ad-renderer-kepler": "git+ssh://git@github.com:socialvibe/TruexAdRenderer-Kepler.git#0.2.25"
   },
   "devDependencies": {
-    "@amzn/kepler-cli-platform": "^0",
+    "@amzn/kepler-cli-platform": "latest",
     "@babel/core": "^7.20.0",
     "@babel/runtime": "^7.20.0",
     "@babel/traverse": "7.24.1",

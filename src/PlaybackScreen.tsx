@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import uuid from 'react-native-uuid';
 import { StackScreenProps } from '@amzn/react-navigation__stack';
 
 import { KeplerVideoSurfaceView, VideoPlayer } from '@amzn/react-native-w3cmedia';
@@ -16,8 +17,8 @@ import {
 } from './video/AdBreak';
 
 import { VideoStreamConfig } from './video/VideoStreamConfig';
-import { AdEventHandler, TruexAd, TruexAdEvent } from '@truex/ad-renderer-kepler';
-import { HWEvent, Image, useTVEventHandler } from '@amzn/react-native-kepler';
+import { AdEventHandler, TruexAd, TruexAdEvent, TruexAdOptions } from "@truex/ad-renderer-kepler";
+import { BackHandler, FocusManager, HWEvent, Image, useTVEventHandler } from "@amzn/react-native-kepler";
 import pauseIcon from './assets/pause.png';
 import playIcon from './assets/play.png';
 
@@ -164,6 +165,7 @@ function AdBreakMarker({ contentTime, duration }: AdBreakMarkerProps) {
 }
 
 export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
+  const pageRef = useRef<View | null>(null);
   const video = useMemo(() => new VideoPlayer(), []);
 
   // Would be passed in as a page route arg in a real app, as would the video steam itself.
@@ -229,7 +231,16 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const [currStreamTime, setCurrStreamTime] = useState(0);
 
   const [currAdBreak, setCurrAdBreak] = useState<AdBreak | undefined>();
+  const currAdBreakRef = useRef<AdBreak | undefined>(); // use to reduce re-renders, see video event listeners below
   const [showTruexAd, setShowTruexAd] = useState(false);
+
+  const tarOptions = useMemo<TruexAdOptions>(() => {
+    const options: TruexAdOptions = {
+      // Ensure a unique user id to minimize no ads available
+      userAdvertisingId: uuid.v4() as string
+    };
+    return options;
+  }, []);
 
   const hasAdCredit = useRef(false);
   const afterAdResumeTarget = useRef<number | undefined>();
@@ -251,11 +262,14 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     }
   }, []);
 
-  const play = useCallback(() => {
+  const play = useCallback((afterPlaying?: () => void) => {
     console.log('*** play');
     setPlaying(true);
     showControls(true);
-    setTimeout(() => video.play(), 100); // avoid crashes by using a separate "thread"
+    // avoid crashes by using a separate "thread"
+    setTimeout(() => {
+      video.play().then(() => afterPlaying?.());
+    }, 100);
   }, [video, showControls]);
 
   const pause = useCallback(() => {
@@ -267,25 +281,32 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   const showAdBreak = useCallback(
     (adBreak: AdBreak | undefined) => {
-      setCurrAdBreak(adBreak);
+      setCurrAdBreak(prevAdBreak => {
+        if (prevAdBreak == adBreak) return prevAdBreak;
 
-      const isTruex = adBreak?.isTruexAd || false;
-      setShowTruexAd(isTruex);
+        // Also set the ref, so allow reduced dependency re-renders.
+        currAdBreakRef.current = adBreak;
 
-      hasAdCredit.current = false;
+        const isTruex = adBreak?.isTruexAd || false;
+        setShowTruexAd(isTruex);
 
-      // ensure we don't see the last second of the ad
-      afterAdResumeTarget.current = adBreak ? adBreak.endTime + 1 : undefined;
+        hasAdCredit.current = false;
 
-      if (isTruex) {
-        console.log(`*** showing truex ad`);
-        // pause the ad videos, will resume later once truex ad completes
-        pause();
-      } else if (adBreak) {
-        console.log(`*** showing regular ad break`);
-      } else {
-        console.log(`*** removing ad break`);
-      }
+        // ensure we don't see the last second of the ad
+        afterAdResumeTarget.current = adBreak ? adBreak.endTime + 1 : undefined;
+
+        if (isTruex) {
+          console.log(`*** showing truex ad`);
+          // pause the ad videos, will resume later once truex ad completes
+          pause();
+        } else if (adBreak) {
+          console.log(`*** showing regular ad break`);
+        } else {
+          console.log(`*** removing ad break`);
+        }
+
+        return adBreak;
+      });
     },
     [pause]
   );
@@ -314,7 +335,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const seekTo = useCallback(
     (newTime: number) => {
       const newTarget = Math.max(0, Math.min(newTime, video.duration));
-      if (newTarget == currStreamTime) {
+      if (newTarget == video.currentTime) {
         console.log('*** seekTo ignored: ' + timeDebug(newTarget, adPlaylist));
       } else {
         console.log('*** seekTo: ' + timeDebug(newTarget, adPlaylist));
@@ -322,7 +343,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         video.currentTime = newTarget;
       }
     },
-    [video, adPlaylist, currStreamTime]
+    [video, adPlaylist]
   );
 
   const onAdEvent: AdEventHandler = useCallback<AdEventHandler>(
@@ -337,12 +358,17 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         case TruexAdEvent.AdCompleted:
         case TruexAdEvent.AdError:
         case TruexAdEvent.NoAdsAvailable:
+          // Resume playback.
+          play();
           if (hasAdCredit.current && afterAdResumeTarget.current !== undefined) {
-            // skip over the fallback ads.
+            // Skip over the fallback ads.
             seekTo(afterAdResumeTarget.current);
           }
-          play(); // resume either fallback ads or else main video
           setShowTruexAd(false);
+
+          // ensure our page has the focus again
+          // @TODO does not seem to work however, we are still losing keyboard focus after webview unmounts
+          pageRef.current?.focus();
           break;
       }
     },
@@ -357,14 +383,17 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     const preRoll = getAdBreakAt(0, adPlaylist);
     showAdBreak(preRoll);
 
-    if (!preRoll && canPlayVideo) {
-      // Start the initial playback.
-      play();
+    if (canPlayVideo) {
+      // Start the initial playback to ensure the video is loaded up.
+      play(() => {
+        // But pause immediately if we have a preroll.
+        if (preRoll) pause();
+      });
     }
 
     // Ensure timer is cleaned up.
     return () => stopControlsDisplayTimer();
-  }, [canPlayVideo, play, showControls, adPlaylist, showAdBreak]);
+  }, [canPlayVideo, play, pause, showControls, adPlaylist, showAdBreak]);
 
   useEffect(() => {
     const onPlaying = () => setPlaying(true);
@@ -373,8 +402,8 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
     const onTimeUpdate = (event: any) => {
       const newStreamTime = Math.floor(video.currentTime);
-      let newSeekTarget = seekTarget;
-      let newAdBreak: AdBreak | undefined = currAdBreak;
+      let newSeekTarget: number | undefined;
+      let newAdBreak: AdBreak | undefined = currAdBreakRef.current;
       setCurrStreamTime(prevStreamTime => {
         if (prevStreamTime == newStreamTime) return prevStreamTime;
 
@@ -405,31 +434,35 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         return newStreamTime;
       });
 
-      if (currAdBreak != newAdBreak) {
+      if (currAdBreakRef.current != newAdBreak) {
         showAdBreak(newAdBreak);
       }
 
       // Process any seek changes.
-      if (newSeekTarget != seekTarget) {
-        seekTo(newSeekTarget);
-      } else if (seekTarget >= 0 && Math.abs(seekTarget - newStreamTime) <= 2) {
-        // backup to ensure we know when seeking is complete
-        setSeekTarget(-1);
-      }
+      setSeekTarget(prevTarget => {
+        if (newSeekTarget && newSeekTarget != prevTarget) {
+          return newSeekTarget; // we have a new seek target
+        } else if (prevTarget >= 0 && Math.abs(prevTarget - newStreamTime) <= 2) {
+          return -1; // backup to ensure we know when seeking is complete
+        }
+        return prevTarget;
+      });
     };
 
+    console.log('*** video adding event listeners');
     video.addEventListener('playing', onPlaying);
     video.addEventListener('paused', onPaused);
     video.addEventListener('timeupdate', onTimeUpdate);
     video.addEventListener('seeked', onSeeked);
 
     return () => {
+      console.log('*** video removing event listeners');
       video.removeEventListener('playing', onPlaying);
       video.removeEventListener('paused', onPaused);
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('seeked', onSeeked);
     };
-  }, [video, currAdBreak, adPlaylist, seekTarget, seekTo, showAdBreak]);
+  }, [video, adPlaylist, showAdBreak]);
 
   const progressBarLayout = useMemo(() => {
     const progressBar = styles.timelineProgress;
@@ -481,7 +514,9 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
           ? Math.max(minStepSeconds, Math.round(currDisplayDuration / maxSeekSteps))
           : minStepSeconds;
 
-      let newTarget = Math.max(0, currStreamTime + steps * stepSeconds);
+
+      const initialTarget = Math.max(0, currStreamTime + steps * stepSeconds);
+      let newTarget = initialTarget;
 
       if (currAdBreak) {
         // We are stepping thru an ad (not usually supported).
@@ -507,6 +542,9 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
             }
           }
         }
+
+//         console.log(`*** seekStep: step: ${steps} stepS: ${stepSeconds}
+// *** iT: ${timeDebug(initialTarget, adPlaylist)} cT: ${timeDebug(newContentTarget, adPlaylist)} nT: ${timeDebug(newTarget, adPlaylist)}`)
       }
 
       seekTo(newTarget);
@@ -515,14 +553,20 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     [adPlaylist, currStreamTime, currContentTime, currAdBreak, currDisplayDuration, seekTo, showControls]
   );
 
-  const onHWEvent = useCallback((evt: HWEvent) => {
-    if (showTruexAd) return; // do not interfere with Truex's own interactive processing.
-    if (evt.eventKeyAction !== 0) return; // ignore key up events
-    switch (evt.eventType) {
-      case 'back':
-        navigateBack();
-        break;
+  useEffect(() => {
+    const onBackHandler = () => {
+      navigateBack();
+      return true; // handled
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackHandler);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackHandler);
+  });
 
+  const onHWEvent = useCallback((evt: HWEvent) => {
+    if (evt.eventKeyAction !== 0) return; // ignore key up events
+    console.log(`*** key event: ${evt.eventType} showTruexAd: ${showTruexAd}`);
+    if (showTruexAd) return; // do not interfere with Truex's own interactive processing.
+    switch (evt.eventType) {
       case 'playpause':
       case 'select':
         if (video.paused) {
@@ -550,12 +594,12 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         seekStep(-1);
         break;
     }
-  }, [navigateBack, video, showTruexAd, pause, play, seekStep]);
+  }, [video, showTruexAd, pause, play, seekStep]);
 
   useTVEventHandler(onHWEvent);
 
   return (
-    <View style={styles.playbackPage}>
+    <View style={styles.playbackPage} ref={pageRef}>
       <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} />
       {isShowingControls && !showTruexAd && (
         <View style={styles.controlBar}>
@@ -585,7 +629,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         </View>
       )}
       {currAdBreak && showTruexAd && (
-        <TruexAd vastConfigUrl={currAdBreak.vastUrl} onAdEvent={onAdEvent} />
+        <TruexAd vastConfigUrl={currAdBreak.vastUrl} options={tarOptions} onAdEvent={onAdEvent} />
       )}
     </View>
   );
