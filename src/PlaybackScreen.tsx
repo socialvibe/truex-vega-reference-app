@@ -236,7 +236,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   const tarOptions = useMemo<TruexAdOptions>(() => {
     const options: TruexAdOptions = {
-      // Ensure a unique user id to avoid minimize no ads available
+      // Ensure a unique user id to minimize no ads available
       userAdvertisingId: uuid.v4() as string
     };
     return options;
@@ -365,7 +365,10 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
             seekTo(afterAdResumeTarget.current);
           }
           setShowTruexAd(false);
-          pageRef.current?.focus(); // ensure our page has the focus again
+
+          // ensure our page has the focus again
+          // @TODO does not seem to work however, we are still losing keyboard focus after webview unmounts
+          pageRef.current?.focus();
           break;
       }
     },
