@@ -64,7 +64,7 @@
       const maxBottom = 40;
       const minBottom = pageH - contentH - 20;
 
-      if (contentH > pageH) {
+      if (contentH > pageH - maxBottom) {
         newBottom = Math.min(maxBottom, Math.max(minBottom, newBottom));
       } else {
         newBottom = minBottom;
@@ -76,9 +76,9 @@
     const knownKeys = {
       home: 0,
       menu: 0,
-      playPause: 0,
-      fastForward: 0,
-      rewind: 0,
+      playPause: 179,
+      fastForward: 228,
+      rewind: 227,
       select: 13,
       space: 32,
       back: 27, // Esc
@@ -99,13 +99,14 @@
         }
       }
       log(`key down: ${keyCode} - ${action}`);
-      scrollLog(1);
 
       const hostApp = window.hostApp;
       if (action == 'back' && hostApp) {
         // Close the web view.
         hostApp.signalAdEvent(JSON.stringify({ type: 'adCompleted' }));
       }
+
+      return true; // handled
     }
 
     body.addEventListener("keydown", onKeyDown);
@@ -116,6 +117,7 @@
       var newMsg = document.createElement("pre");
       newMsg.innerText = msg;
       msgsDiv.append(newMsg);
+      scrollLog(1);
     }
 
     log("Note: Hit Back to exit");
