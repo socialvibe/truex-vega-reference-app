@@ -82,6 +82,7 @@
       select: 13,
       space: 32,
       back: 27, // Esc
+      delete: 8,
       left: 39,
       right: 37,
       up: 38,
@@ -117,8 +118,8 @@
       msgsDiv.append(newMsg);
     }
 
-    scrollLog(0, 0);
     log("Note: Hit Back to exit");
+    scrollLog(0, 0);
   })();
 </script>
 </body>
