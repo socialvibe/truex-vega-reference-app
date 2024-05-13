@@ -106,6 +106,8 @@
         hostApp.signalAdEvent(JSON.stringify({ type: 'adCompleted' }));
       }
 
+      event.stopPropagation();
+      event.stopImmediatePropagation();
       return true; // handled
     }
 
