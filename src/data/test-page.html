@@ -99,6 +99,12 @@
       }
       log(`key down: ${keyCode} - ${action}`);
       scrollLog(1);
+
+      const hostApp = window.hostApp;
+      if (action == 'back' && hostApp) {
+        // Close the web view.
+        hostApp.signalAdEvent(JSON.stringify({ type: 'adCompleted' }));
+      }
     }
 
     body.addEventListener("keydown", onKeyDown);
