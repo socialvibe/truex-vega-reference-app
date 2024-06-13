@@ -119,7 +119,7 @@ export function TruexAd(adProps: TruexAdProps) {
       <WebView ref={webRef} style={styles.webView} source={webSource}
                javaScriptEnabled={true} allowSystemKeyEvents={true}
                mediaPlaybackRequiresUserAction={false} userAgent={userAgent}
-               // hasTVPreferredFocus={true}
+               hasTVPreferredFocus={true}
                onMessage={onWebViewMessage}
                onError={onWebViewError}
                onLoad={onWebViewLoad}
