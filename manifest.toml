@@ -33,3 +33,4 @@ id = "com.amazon.media.playersession.service"
 id = "com.amazon.audio.stream"
 [[wants.service]]
 id = "com.amazon.audio.control"
+

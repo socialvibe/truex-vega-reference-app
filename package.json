@@ -14,8 +14,11 @@
     "build": "npm run compile",
     "release": "npm-run-all lint test compile",
 
-    "kepler-build-debug": "kepler build -b Debug",
-    "kepler-build-release": "kepler build -b Release",
+    "build": "npm run compile",
+    "build:release": "react-native build-kepler --build-type Release",
+    "build:debug": "react-native build-kepler --build-type Debug",
+    "build:app": "npm-run-all build:release build:debug",
+    "release": "npm-run-all lint test build build:app",
 
     "kepler-simulator-debug": "kepler run-kepler build/vega-tv2023-aarch64-debug/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
     "kepler-simulator-release": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
@@ -35,30 +38,29 @@
     "kepler-stop-app": "kepler device terminate-app -a com.truex.keplerrefapp.main"
   },
   "dependencies": {
-    "@amzn/keplerscript-react-native-reanimated": "~2.0.1722663255",
-    "@amzn/react-native-gesture-handler": "~2.0.1722663255",
     "@amzn/react-native-kepler": "~2.0.1722663255",
-    "@amzn/react-native-safe-area-context": "~2.0.1722663255",
-    "@amzn/react-native-screens": "~2.0.1722663255",
+    "@amzn/react-native-device-info": "^2.0.1722663255",
+    "@amzn/react-native-gesture-handler": "~2.0.1722663255",
     "@amzn/react-native-w3cmedia": "~2.1.14",
-    "@amzn/react-navigation__core": "~2.0.1722663255",
-    "@amzn/react-navigation__drawer": "~2.0.1722663255",
-    "@amzn/react-navigation__native": "~2.0.1722663255",
-    "@amzn/react-navigation__routers": "~2.0.1722663255",
-    "@amzn/react-navigation__stack": "~2.0.1722663255",
+    "react-native-screens": "~3.1.1",
+    "@amzn/keplerscript-react-native-reanimated": "~2.0.0",
+    "@amzn/react-native-safe-area-context": "~2.0.0",
+    "@amzn/react-navigation__routers": "~2.0.0",
+    "@amzn/react-navigation__core": "~2.0.0",
+    "@amzn/react-navigation__native": "~2.0.0",
+    "@amzn/react-navigation__stack": "~2.0.0",
+    "@amzn/react-navigation__drawer": "~2.0.0",
+    "@amzn/react-native-screens": "~2.0.0",
     "@amzn/webview": "file:webview-2.3.0.tgz",
     "react": "18.2.0",
     "react-native": "0.72.0",
     "react-native-uuid": "~2.0.2"
   },
   "devDependencies": {
-    "@amzn/kepler-cli-platform": "latest",
-    "@babel/core": "^7.20.0",
-    "@babel/runtime": "^7.20.0",
-    "@babel/traverse": "7.24.1",
-    "@react-native-community/cli": "11.3.2",
+    "@amzn/kepler-cli-platform": "^0",
     "@react-native/eslint-config": "0.72.2",
     "@react-native/metro-config": "^0.72.6",
+    "@react-native-community/cli": "11.3.2",
     "@testing-library/react-native": "^7.2.0",
     "@types/jest": "^28.0.0",
     "@types/react": "^18.0.24",
@@ -78,9 +80,7 @@
   "kepler": {
     "projectType": "application",
     "appName": "TruexKeplerRefApp",
-    "targets": [
-      "tv"
-    ],
+    "targets": ["tv"],
     "api": 0.1
   }
 }

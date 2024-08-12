@@ -13,9 +13,9 @@ import { WebView } from '@amzn/webview';
 import { TruexAdOptions } from './TruexAdOptions';
 import {
   WebViewErrorEvent,
-  WebViewMessageEvent,
+  WebViewMessageEvent, WebViewMethods,
   WebViewNavigationEvent
-} from '@amzn/webview/dist/types/WebViewTypes';
+} from "@amzn/webview/dist/types/WebViewTypes";
 
 export interface TruexAdProps {
   vastConfigUrl?: string;
@@ -39,7 +39,7 @@ export function TruexAd(adProps: TruexAdProps) {
   }, []);
 
   const adContainerRef = useRef<View|null>(null);
-  const webRef = useRef<typeof WebView | null>(null);
+  const webRef = useRef<WebViewMethods | null>(null);
   const didInjectionRef = useRef(false);
 
   // Use a user agent the clearly reports this as a Kepler device.
