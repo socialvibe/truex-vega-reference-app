@@ -8,7 +8,6 @@
     "clean": "rm -rf buildinfo.json dist build",
     "start": "npx react-native start",
     "update-version": "sed -e 's/^version =.*$/version = \"'$npm_package_version'\"/' -i '' manifest.toml",
-    "version": "echo $npm_package_version",
     "lint": "eslint src --ext .ts,.tsx",
     "compile": "tsc -p tsconfig.json",
     "link-tar": "npm link @truex/ad-renderer-kepler",
