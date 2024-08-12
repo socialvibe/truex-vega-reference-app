@@ -1,22 +1,21 @@
 {
   "name": "@amzn/truexkeplerrefapp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "files": [
     "dist"
   ],
   "scripts": {
     "clean": "rm -rf buildinfo.json dist build",
     "start": "npx react-native start",
+    "update-version": "sed -e 's/^version =.*$/version = \"'$npm_package_version'\"/' -i '' manifest.toml",
+    "version": "echo $npm_package_version",
     "lint": "eslint src --ext .ts,.tsx",
     "compile": "tsc -p tsconfig.json",
     "link-tar": "npm link @truex/ad-renderer-kepler",
 
-    "build": "npm run compile",
-    "release": "npm-run-all lint test compile",
-
-    "build": "npm run compile",
-    "build:release": "react-native build-kepler --build-type Release",
-    "build:debug": "react-native build-kepler --build-type Debug",
+    "build": "run-s update-version compile",
+    "build:release": "react-native build-kepler --buildType Release",
+    "build:debug": "react-native build-kepler --buildType Debug",
     "build:app": "npm-run-all build:release build:debug",
     "release": "npm-run-all lint test build build:app",
 
@@ -38,9 +37,9 @@
     "kepler-stop-app": "kepler device terminate-app -a com.truex.keplerrefapp.main"
   },
   "dependencies": {
-    "@amzn/react-native-kepler": "~2.0.1722663255",
-    "@amzn/react-native-device-info": "^2.0.1722663255",
-    "@amzn/react-native-gesture-handler": "~2.0.1722663255",
+    "@amzn/react-native-kepler": "~2.0.0",
+    "@amzn/react-native-device-info": "^2.0.0",
+    "@amzn/react-native-gesture-handler": "~2.0.0",
     "@amzn/react-native-w3cmedia": "~2.1.14",
     "react-native-screens": "~3.1.1",
     "@amzn/keplerscript-react-native-reanimated": "~2.0.0",
