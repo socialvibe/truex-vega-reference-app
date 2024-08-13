@@ -13,8 +13,8 @@
     "link-tar": "npm link @truex/ad-renderer-kepler",
 
     "build": "run-s update-version compile",
-    "build:release": "react-native build-kepler --buildType Release",
-    "build:debug": "react-native build-kepler --buildType Debug",
+    "build:release": "react-native build-kepler --build-type Release",
+    "build:debug": "react-native build-kepler --build-type Debug",
     "build:app": "npm-run-all build:release build:debug",
     "release": "npm-run-all lint test build build:app",
 
@@ -36,26 +36,26 @@
     "kepler-stop-app": "kepler device terminate-app -a com.truex.keplerrefapp.main"
   },
   "dependencies": {
-    "@amzn/react-native-kepler": "~2.0.1722663255",
-    "@amzn/react-native-device-info": "~2.0.1722663255",
-    "@amzn/react-native-gesture-handler": "~2.0.1722663255",
-    "@amzn/react-native-w3cmedia": "~2.1.14",
-    "react-native-screens": "~3.1.1",
-    "@amzn/react-native-safe-area-context": "~2.0.1722663255",
-    "@amzn/react-navigation__routers": "~2.0.1722663255",
-    "@amzn/react-navigation__core": "~2.0.1722663255",
-    "@amzn/react-navigation__native": "~2.0.1722663255",
-    "@amzn/react-navigation__stack": "~2.0.1722663255",
-    "@amzn/react-navigation__drawer": "~2.0.1722663255",
-    "@amzn/react-native-screens": "~2.0.1722663255",
-    "@amzn/react-native-reanimated": "~2.0.1722663255",
-    "react-native-gesture-handler": "~2.18.1",
-
-
-    "@amzn/webview": "file:webview-2.3.0.tgz",
+    "@amzn/react-native-kepler": "~2.0.0",
     "react": "18.2.0",
     "react-native": "0.72.0",
-    "react-native-uuid": "~2.0.2"
+    "react-native-uuid": "~2.0.2",
+
+    "react-native-gesture-handler": "latest",
+
+    "@amzn/react-native-w3cmedia": "latest",
+    "@amzn/react-native-device-info": "latest",
+
+    "@amzn/keplerscript-react-native-reanimated": "~2.0.0",
+    "@amzn/react-native-safe-area-context": "~2.0.0",
+    "@amzn/react-navigation__routers": "~2.0.0",
+    "@amzn/react-navigation__core": "~2.0.0",
+    "@amzn/react-navigation__native": "~2.0.0",
+    "@amzn/react-navigation__stack": "~2.0.0",
+    "@amzn/react-navigation__drawer": "~2.0.0",
+    "@amzn/react-native-screens": "~2.0.0",
+
+    "@amzn/webview": "file:webview-2.3.0.tgz"
   },
   "devDependencies": {
     "@amzn/kepler-cli-platform": "^0",
