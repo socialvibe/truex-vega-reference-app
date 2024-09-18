@@ -34,7 +34,8 @@ export function TruexAd(adProps: TruexAdProps) {
 
   const webSource = useMemo(() => {
     // For testing key events:
-    return { uri: 'http://ctv.truex.com.s3.amazonaws.com/kepler/test/test-page.html?cb=' + Date.now() };
+    return { uri: 'https://ctv.truex.com/kepler/test/test-page.html?cb=' + Date.now() };
+    // return { uri: 'http://ctv.truex.com.s3.amazonaws.com/kepler/test/test-page.html?cb=' + Date.now() };
     //return { uri: `https://ctv.truex.com/android/bridge/v2/branch-test/task_pi-2692_support-tar-kepler-webview/index.html` };
   }, []);
 
