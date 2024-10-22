@@ -285,6 +285,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const showAdBreak = useCallback(
     (adBreak: AdBreak | undefined) => {
       setCurrAdBreak(prevAdBreak => {
+        if (adBreak == adBreak) return;
         if (prevAdBreak == adBreak) return prevAdBreak;
 
         // Also set the ref, so allow reduced dependency re-renders.

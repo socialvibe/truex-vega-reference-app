@@ -27,6 +27,10 @@ id = "com.amazon.mediametrics.service" # Required for metrics service
 id = "com.amazon.media.server"
 [[wants.service]]
 id = "com.amazon.media.playersession.service"
+[[wants.service]]
+id = "com.amazon.mediabuffer.service"
+[[wants.service]]
+id = "com.amazon.mediatransform.service"
 
 # For audio playback
 [[wants.service]]
