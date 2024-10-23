@@ -37,4 +37,6 @@ id = "com.amazon.mediatransform.service"
 id = "com.amazon.audio.stream"
 [[wants.service]]
 id = "com.amazon.audio.control"
+[[wants.service]]
+id = "com.amazon.audio.system"
 

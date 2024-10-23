@@ -15,6 +15,7 @@
     "curly": "off",
     "comma-dangle": "off",
     "no-unused-vars": "off",
+    "no-constant-condition": "off",
     "@typescript-eslint/no-unused-vars": "off",
     "jsx-a11y/anchor-is-valid": "off",
     "prettier/prettier": "off",
