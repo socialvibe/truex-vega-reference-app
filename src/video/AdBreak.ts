@@ -167,7 +167,7 @@ export function pad(value: number): string {
   return value < 10 ? '0' + value : value.toString();
 }
 
-export function timeDebug(streamTime: number, adPlaylist: AdBreak[]) {
-  const contentTime = getVideoContentTimeAt(streamTime, adPlaylist);
+export function timeDebug(streamTime: number, adPlaylist: AdBreak[], currAdBreak? : AdBreak) {
+  const contentTime = getVideoContentTimeAt(streamTime, adPlaylist, currAdBreak);
   return `${timeLabel(contentTime)} [${timeLabel(streamTime)}]`;
 }

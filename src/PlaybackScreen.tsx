@@ -150,7 +150,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const showAdBreak = useCallback(
     (adBreak: AdBreak | undefined) => {
       setCurrAdBreak(prevAdBreak => {
-        if (adBreak == adBreak) return;
         if (prevAdBreak == adBreak) return prevAdBreak;
 
         // Also set the ref, so allow reduced dependency re-renders.
@@ -191,7 +190,9 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const currDisplayTime = useMemo(() => {
     // Show the seek target instead of the playback time if it is active.
     const streamTimeToShow = seekTarget >= 0 ? seekTarget : currStreamTime;
-    return getVideoContentTimeAt(streamTimeToShow, adPlaylist, currAdBreak);
+    const displayResult = getVideoContentTimeAt(streamTimeToShow, adPlaylist, currAdBreak);
+    debugVideoPosition("display time update: " + timeLabel(displayResult), streamTimeToShow, adPlaylist, currAdBreak);
+    return displayResult;
   }, [seekTarget, currStreamTime, adPlaylist, currAdBreak]);
 
   const currDisplayDuration = useMemo(
@@ -377,7 +378,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
 
       const initialTarget = Math.max(0, currStreamTime + steps * stepSeconds);
-      debugVideoPosition("seekStep: initialTarget", initialTarget, adPlaylist, currAdBreak);
       let newTarget = initialTarget;
 
       if (currAdBreak) {
@@ -387,7 +387,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         // We are stepping thru content, ensure we skip over completed ads, stop on unplayed ones.
         const newContentTarget = Math.max(0, currContentTime + steps * stepSeconds);
         newTarget = getVideoStreamTimeAt(newContentTarget, adPlaylist);
-        debugVideoPosition("seekStep: newTarget", newTarget, adPlaylist, currAdBreak);
         const nextAdBreak = getNextAdBreak(Math.min(currStreamTime, newTarget), adPlaylist);
         if (nextAdBreak) {
           const skipForwardOverAdBreak = currStreamTime < newTarget && nextAdBreak.startTime < newTarget;
@@ -402,7 +401,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
             } else {
               // Ensure we do not skip over an ad that still needs to be played.
               newTarget = nextAdBreak.startTime;
-              debugVideoPosition("seekStep: snapBack", newTarget, adPlaylist, currAdBreak);
             }
           }
         }
@@ -654,15 +652,13 @@ function AdBreakMarker({ contentTime, duration }: AdBreakMarkerProps) {
   return <View style={layout} />;
 }
 
-function debugVideoPosition(context: string, streamTime: number, adPlaylist: AdBreak[], adBreak?: AdBreak) {
+function debugVideoPosition(context: string, streamTime: number, adPlaylist: AdBreak[], currAdBreak?: AdBreak) {
   if (debugVideoTime) {
-    const streamTimeLabel = timeDebug(streamTime, adPlaylist);
+    const streamTimeLabel = timeDebug(streamTime, adPlaylist, currAdBreak);
     let msg = `*** ${context}: ${streamTimeLabel}`;
-    if (adBreak) {
-      const adState = adBreak.completed ? 'completed' : adBreak.started ? 'started' : 'todo';
-      const adStartLabel = timeDebug(adBreak.startTime, adPlaylist);
-      const adEndLabel = timeDebug(adBreak.endTime, adPlaylist);
-      msg += `in ad ${adBreak.id} (${adState}) from ${adStartLabel} to ${adEndLabel}`;
+    if (currAdBreak) {
+      const adState = currAdBreak.completed ? 'completed' : currAdBreak.started ? 'started' : 'todo';
+      msg += ` in ad ${currAdBreak.id} (${adState})`;
     }
     console.log(msg);
   }
