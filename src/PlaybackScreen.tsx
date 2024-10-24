@@ -31,141 +31,6 @@ const videoStream = videoStreamJson as VideoStreamConfig;
 const disableSeeksInAds = false; // enable for demo purposes, set to true normally
 const debugVideoTime = false;
 
-const timelineW = 1480;
-const timelineH = 20;
-const playSize = 34;
-const padding = 8;
-const gap = 10;
-const timeDisplayW = 90;
-const controlBarH = playSize + 2 * padding;
-
-const styles = StyleSheet.create({
-  playbackPage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#606060',
-    alignItems: 'stretch'
-  },
-  videoView: {
-    zIndex: 0,
-    top: 0,
-    left: 0,
-    position: 'absolute',
-    width: '100%',
-    height: '100%'
-  },
-  adLabel: {
-    color: 'white',
-    fontSize: 50
-  },
-  adIndicator: {
-    position: 'absolute',
-    padding: 12,
-    left: 40,
-    top: 40,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)'
-  },
-  controlBar: {
-    display: 'flex',
-    flexDirection: 'row',
-    verticalAlign: 'middle',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    marginTop: 'auto',
-    marginBottom: 240,
-    height: controlBarH,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: padding
-  },
-  playPauseIcon: {
-    width: playSize,
-    height: playSize
-  },
-  timeline: {
-    verticalAlign: 'middle',
-    position: 'relative',
-    marginLeft: gap,
-    marginTop: 'auto',
-    marginBottom: 'auto',
-    width: timelineW,
-    height: timelineH,
-    backgroundColor: '#555555'
-  },
-  timelineProgress: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    height: timelineH,
-    backgroundColor: 'white'
-  },
-  timelineSeek: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    height: timelineH,
-    backgroundColor: '#888888'
-  },
-  adMarkers: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: timelineH
-  },
-  adBreak: {
-    position: 'absolute',
-    backgroundColor: 'darkgoldenrod',
-    width: 4,
-    height: '100%'
-  },
-  timeLabel: {
-    color: 'white',
-    fontSize: 20,
-    height: 22,
-    lineHeight: 22,
-    marginTop: 'auto',
-    marginBottom: 'auto',
-    marginLeft: 'auto',
-    marginRight: 'auto'
-  },
-  currentTime: {
-    textAlign: 'center',
-    position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: padding,
-    width: timeDisplayW,
-    height: 25,
-    bottom: '100%',
-    left: 0,
-    marginLeft: -timeDisplayW / 2,
-    marginBottom: 8
-  },
-  duration: {
-    verticalAlign: 'middle',
-    textAlign: 'center',
-    marginLeft: gap,
-    width: timeDisplayW,
-    height: playSize
-  }
-});
-
-function timelineWidth(time: number, duration: number): number {
-  // Try to stick to 2 decimal places of precision.
-  return duration > 0 ? Math.floor(((time * timelineW) / duration) * 100) / 100 : 0;
-}
-
-interface AdBreakMarkerProps {
-  contentTime: number;
-  duration: number;
-}
-
-function AdBreakMarker({ contentTime, duration }: AdBreakMarkerProps) {
-  const layout = useMemo(
-    () => [styles.adBreak, { left: timelineWidth(contentTime, duration) }],
-    [contentTime, duration]
-  );
-  return <View style={layout} />;
-}
 
 export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const pageRef = useRef<View | null>(null);
@@ -606,7 +471,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     <View style={styles.playbackPage} ref={pageRef}>
       <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} />
       {isShowingControls && !showTruexAd && (
-        <View style={styles.controlBar}>
+        <View style={styles.controlBar2}>
           <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon} />
           <View style={styles.timeline}>
             <View style={progressBarLayout} />
@@ -640,3 +505,156 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 }
 
 export default PlaybackScreen;
+
+const timelineW = 1480;
+const timelineH = 20;
+const playSize = 34;
+const padding = 8;
+const gap = 10;
+const timeDisplayW = 90;
+const controlBarH = playSize + 2 * padding;
+
+const styles = StyleSheet.create({
+  playbackPage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#606060',
+    alignItems: 'stretch'
+  },
+  videoView: {
+    zIndex: 0,
+    top: 0,
+    left: 0,
+    position: 'absolute',
+    width: '100%',
+    height: '100%'
+  },
+  adLabel: {
+    color: 'white',
+    fontSize: 50
+  },
+  adIndicator: {
+    position: 'absolute',
+    padding: 12,
+    left: 40,
+    top: 40,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+  },
+
+  // Bug: 'auto' margins seem to completely ineffective in SDK 0.11 and 0.12.
+  controlBar: {
+    display: 'flex',
+    flexDirection: 'row',
+    verticalAlign: 'middle',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    marginTop: 'auto',
+    marginBottom: 240,
+    height: controlBarH,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: padding
+  },
+
+  // Use these control bar styles instead to see how it is supposed to look.
+  controlBar2: {
+    position: 'absolute',
+    left: 120,
+    bottom: 240,
+    flexDirection: 'row',
+    verticalAlign: 'middle',
+    textAlign: 'center',
+    alignItems: 'center',
+    height: controlBarH,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: padding
+  },
+
+  playPauseIcon: {
+    width: playSize,
+    height: playSize
+  },
+  timeline: {
+    verticalAlign: 'middle',
+    position: 'relative',
+    marginLeft: gap,
+    marginTop: 'auto',
+    marginBottom: 'auto',
+    width: timelineW,
+    height: timelineH,
+    backgroundColor: '#555555'
+  },
+  timelineProgress: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: timelineH,
+    backgroundColor: 'white'
+  },
+  timelineSeek: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: timelineH,
+    backgroundColor: '#888888'
+  },
+  adMarkers: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: timelineH
+  },
+  adBreak: {
+    position: 'absolute',
+    backgroundColor: 'darkgoldenrod',
+    width: 4,
+    height: '100%'
+  },
+  timeLabel: {
+    color: 'white',
+    fontSize: 20,
+    height: 22,
+    lineHeight: 22,
+    marginTop: 'auto',
+    marginBottom: 'auto',
+    marginLeft: 'auto',
+    marginRight: 'auto'
+  },
+  currentTime: {
+    textAlign: 'center',
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: padding,
+    width: timeDisplayW,
+    height: 25,
+    bottom: '100%',
+    left: 0,
+    marginLeft: -timeDisplayW / 2,
+    marginBottom: 8
+  },
+  duration: {
+    verticalAlign: 'middle',
+    textAlign: 'center',
+    marginLeft: gap,
+    width: timeDisplayW,
+    height: playSize
+  }
+});
+
+function timelineWidth(time: number, duration: number): number {
+  // Try to stick to 2 decimal places of precision.
+  return duration > 0 ? Math.floor(((time * timelineW) / duration) * 100) / 100 : 0;
+}
+
+interface AdBreakMarkerProps {
+  contentTime: number;
+  duration: number;
+}
+
+function AdBreakMarker({ contentTime, duration }: AdBreakMarkerProps) {
+  const layout = useMemo(
+    () => [styles.adBreak, { left: timelineWidth(contentTime, duration) }],
+    [contentTime, duration]
+  );
+  return <View style={layout} />;
+}
