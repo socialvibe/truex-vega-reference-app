@@ -16,27 +16,51 @@ id = "com.truex.keplerrefapp.main"
 runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
 launch-type = "singleton"
 
+[wants]
+[[wants.service]]
+id = "com.amazon.inputmethod.service"
+
 # For rendering web content
 [[wants.service]]
 id = "com.amazon.webview.renderer_service"
 
 # For video playback
 [[wants.service]]
-id = "com.amazon.mediametrics.service" # Required for metrics service
-[[wants.service]]
 id = "com.amazon.media.server"
-[[wants.service]]
-id = "com.amazon.media.playersession.service"
+
 [[wants.service]]
 id = "com.amazon.mediabuffer.service"
+
 [[wants.service]]
 id = "com.amazon.mediatransform.service"
 
-# For audio playback
+[[wants.service]]
+id = "com.amazon.mediametrics.service"
+
+#Required for remote button events.
+[[wants.service]]
+id = "com.amazon.inputd.service"
+
+#Required to connect to MediaControls
+[[wants.service]]
+id = "com.amazon.media.playersession.service"
+
+#Required for GIPC SR
+[[wants.service]]
+id = "com.amazon.gipc.uuid.*"
+
+#Required for using the audio stream
 [[wants.service]]
 id = "com.amazon.audio.stream"
+
+#Required for using Volume and Other controls
 [[wants.service]]
 id = "com.amazon.audio.control"
+
+#Required for using Volume and Other controls
 [[wants.service]]
 id = "com.amazon.audio.system"
 
+#Required for GIPC SR
+[[offers.service]]
+id = "com.amazon.gipc.uuid.*"
