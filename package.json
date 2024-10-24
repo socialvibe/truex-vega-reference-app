@@ -13,8 +13,8 @@
     "link-tar": "npm link @truex/ad-renderer-kepler",
 
     "build": "run-s update-version compile",
-    "build:release": "react-native build-kepler --build-type Release",
-    "build:debug": "react-native build-kepler --build-type Debug",
+    "build:release": "npm run build && react-native build-kepler --build-type Release",
+    "build:debug": "npm run build && react-native build-kepler --build-type Debug",
     "build:app": "npm-run-all build:release build:debug",
     "release": "npm-run-all lint test build build:app",
 
