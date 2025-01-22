@@ -7,7 +7,7 @@ schema-version = 1
 
 [package]
 title = "Basic UI React Native Application"
-version = "0.2.1"
+version = "0.2.2"
 id = "com.truex.keplerrefapp"
 
 [components]
@@ -60,6 +60,11 @@ id = "com.amazon.audio.control"
 #Required for using Volume and Other controls
 [[wants.service]]
 id = "com.amazon.audio.system"
+
+# To enable accessibility support for your app,
+# it's highly recommended you add UCC service with SR
+[[wants.service]]
+id = "com.amazon.kepler.ucc.publisher"
 
 #Required for GIPC SR
 [[offers.service]]

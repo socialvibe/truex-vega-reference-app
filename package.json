@@ -1,6 +1,6 @@
 {
   "name": "@amzn/truexkeplerrefapp",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "files": [
     "dist"
   ],
@@ -55,7 +55,7 @@
     "@amzn/react-navigation__drawer": "~2.0.0",
     "@amzn/react-native-screens": "~2.0.0",
 
-    "@amzn/webview": "file:webview-2.4.0.tgz"
+    "@amzn/webview": "file:webview-3.1.0.tgz"
   },
   "devDependencies": {
     "@amzn/kepler-cli-platform": "^0",
