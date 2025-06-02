@@ -69,3 +69,6 @@ id = "com.amazon.kepler.ucc.publisher"
 #Required for GIPC SR
 [[offers.service]]
 id = "com.amazon.gipc.uuid.*"
+
+[[needs.module]]
+id = "/com.amazon.kepler.webview@IWebView"
