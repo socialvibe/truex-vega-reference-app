@@ -28,13 +28,12 @@
     "kepler-log-stop": "kepler device stop-log-stream",
 
     "__comment__": "For installing on the actual kepler stick:",
-    "kepler-device-debug": "run-s kepler-push-debug kepler-stop-app kepler-install kepler-start-app",
-    "kepler-device-release": "run-s kepler-push-release kepler-stop-app kepler-install kepler-start-app",
-    "kepler-push-debug": "vda push build/vega-tv2023-armv7-debug/truexkeplerrefapp_armv7.vpkg /tmp",
-    "kepler-push-release": "vda push build/vega-tv2023-armv7-release/truexkeplerrefapp_armv7.vpkg /tmp",
-    "kepler-install": "vda shell vpm install /tmp/truexkeplerrefapp_armv7.vpkg",
-    "kepler-start-app": "kepler device launch-app -a com.truex.keplerrefapp.main",
-    "kepler-stop-app": "kepler device terminate-app -a com.truex.keplerrefapp.main"
+    "kepler-device-debug": "run-s kepler-stop-app kepler-install-debug kepler-start-app",
+    "kepler-device-release": "run-s kepler-stop-app kepler-install-release kepler-start-app",
+    "kepler-install-release": "kepler device install-app --dir .",
+    "kepler-install-debug": "kepler device install-app -b Debug --dir .",
+    "kepler-start-app": "kepler device launch-app",
+    "kepler-stop-app": "kepler device terminate-app",
   },
   "old-deps": {
     "@amzn/keplerscript-react-native-reanimated": "~2.0.0"
@@ -86,6 +85,7 @@
     "projectType": "application",
     "appName": "TruexKeplerRefApp",
     "targets": ["tv"],
+    "features": ["vega"],
     "api": 0.1
   }
 }
