@@ -13,6 +13,7 @@ id = "com.truex.keplerrefapp"
 [components]
 [[components.interactive]]
 id = "com.truex.keplerrefapp.main"
+categories = ["com.amazon.category.main"]
 runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
 launch-type = "singleton"
 
