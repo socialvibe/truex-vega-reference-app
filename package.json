@@ -33,7 +33,7 @@
     "kepler-install-release": "kepler device install-app --dir .",
     "kepler-install-debug": "kepler device install-app -b Debug --dir .",
     "kepler-start-app": "kepler device launch-app",
-    "kepler-stop-app": "kepler device terminate-app",
+    "kepler-stop-app": "kepler device terminate-app"
   },
   "old-deps": {
     "@amzn/keplerscript-react-native-reanimated": "~2.0.0"
