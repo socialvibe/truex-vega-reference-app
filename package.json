@@ -46,7 +46,7 @@
 
     "@amzn/react-native-gesture-handler": "~2.0.0",
 
-    "@amzn/react-native-w3cmedia": "~2.1.0",
+    "@amzn/react-native-w3cmedia": "~2.1.1",
     "@amzn/react-native-device-info": "~2.0.0",
 
     "@amzn/react-native-safe-area-context": "~2.0.0",
