@@ -71,5 +71,5 @@ id = "com.amazon.kepler.ucc.publisher"
 [[offers.service]]
 id = "com.amazon.gipc.uuid.*"
 
-[[needs.module]]
-id = "/com.amazon.kepler.webview@IWebView"
+#[[needs.module]]
+#id = "/com.amazon.kepler.webview@IWebView"
