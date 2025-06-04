@@ -417,13 +417,17 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   useEffect(() => {
     const onBackHandler = () => {
+      if (showTruexAd) {
+        // Ignore back actions when the truex ad is being shown.
+        return false;
+      }
       console.log("*** back: Playbackscreen");
-      //navigateBack();
+      navigateBack();
       return true; // handled
     };
-//    BackHandler.addEventListener('hardwareBackPress', onBackHandler);
+    BackHandler.addEventListener('hardwareBackPress', onBackHandler);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackHandler);
-  });
+  }, []);
 
   const onHWEvent = useCallback((evt: HWEvent) => {
     if (evt.eventKeyAction !== 0) return; // ignore key up events
