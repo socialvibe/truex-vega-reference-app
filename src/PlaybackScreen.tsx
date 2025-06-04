@@ -417,10 +417,11 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   useEffect(() => {
     const onBackHandler = () => {
-      navigateBack();
+      console.log("*** back: Playbackscreen");
+      //navigateBack();
       return true; // handled
     };
-    BackHandler.addEventListener('hardwareBackPress', onBackHandler);
+//    BackHandler.addEventListener('hardwareBackPress', onBackHandler);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackHandler);
   });
 

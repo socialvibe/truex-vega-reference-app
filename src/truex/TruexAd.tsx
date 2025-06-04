@@ -16,6 +16,7 @@ import {
   WebViewMessageEvent, WebViewMethods,
   WebViewNavigationEvent
 } from "@amzn/webview/dist/types/WebViewTypes";
+import { BackHandler } from '@amzn/react-native-kepler';
 
 export interface TruexAdProps {
   vastConfigUrl?: string;
@@ -33,10 +34,12 @@ export function TruexAd(adProps: TruexAdProps) {
   const [adComplete, setAdComplete] = useState(false);
 
   const webSource = useMemo(() => {
-    // For testing key events:
-    return { uri: 'https://ctv.truex.com/kepler/test/test-page.html?cb=' + Date.now() };
-    // return { uri: 'http://ctv.truex.com.s3.amazonaws.com/kepler/test/test-page.html?cb=' + Date.now() };
-    //return { uri: `https://ctv.truex.com/android/bridge/v2/branch-test/task_pi-2692_support-tar-kepler-webview/index.html` };
+    const url = 'https://ctv.truex.com/kepler/test/test-page.html?cb=' + Date.now();
+    //const url = "https://qa-media.truex.com/container/3.x/current/ctv.html#creative_json_url=https%3A%2F%2Fqa-ee.truex.com%2Fstudio%2Fdrafts%2F5179%2Fconfig_json&session_id=100cfe41-7638-4e32-9383-4f0a1e6eebde&multivariate%5Bctv_footer_test%5D=T0&multivariate%5Bctv_relevance_enabled%5D=true";
+    //const url = "https://ctv.truex.com/android/bridge/v2/branch-test/task_pi-2692_support-tar-kepler-webview/index.html";
+    //const url = "https://ctv.truex.com/android/bridge/v2/qa/index.html?test=1";
+    //const url = "https://ctv.truex.com/android/bridge/v2/qa/index.html?test_vast_config_url=qa-get.truex.com%2Fc39e2b60633fcda48cbbc60b9628af64cf23ff9d%2Fvast%2Fconfig%3Fdimension_1%3DPI-2447-C3-ctv-ad";
+    return { uri: url }
   }, []);
 
   const adContainerRef = useRef<View|null>(null);
@@ -72,6 +75,17 @@ export function TruexAd(adProps: TruexAdProps) {
     if (vastConfigUrl) console.log(`TruexAd: using vast config url: ${vastConfigUrl}`);
     injectInitialStyles(webRef.current, onAdEvent);
   }, [onAdEvent, adEventWrapper, vastConfigUrl]);
+
+  useEffect(() => {
+    // Intercept back actions, direct the web page to go back in its history/
+    const onBackHandler = () => {
+      console.log("*** back: TruexAd");
+      //webRef.current?.goBack();
+      return true; // handled
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackHandler);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackHandler);
+  });
 
   const onWebViewMessage = useCallback((msgEvent: WebViewMessageEvent) => {
     const message = JSON.parse(msgEvent.nativeEvent.data);
