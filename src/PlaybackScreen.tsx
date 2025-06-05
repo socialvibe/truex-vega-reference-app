@@ -158,6 +158,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   const showAdBreak = useCallback(
     (adBreak: AdBreak | undefined) => {
+      return;
       setCurrAdBreak(prevAdBreak => {
         if (prevAdBreak == adBreak) return prevAdBreak;
 

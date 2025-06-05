@@ -28,6 +28,7 @@
     "kepler-log-stop": "kepler device stop-log-stream",
 
     "__comment__": "For installing on the actual kepler stick:",
+    "kepler-device-build-debug": "run-s build:debug kepler-device-debug",
     "kepler-device-debug": "run-s kepler-stop-app kepler-install-debug kepler-start-app",
     "kepler-device-release": "run-s kepler-stop-app kepler-install-release kepler-start-app",
     "kepler-install-release": "kepler device install-app --dir .",
