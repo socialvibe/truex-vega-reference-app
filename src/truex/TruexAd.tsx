@@ -13,9 +13,10 @@ import { WebView } from '@amzn/webview';
 import { TruexAdOptions } from './TruexAdOptions';
 import {
   WebViewErrorEvent,
-  WebViewMessageEvent, WebViewMethods,
+  WebViewMessageEvent,
+  WebViewMethods,
   WebViewNavigationEvent
-} from "@amzn/webview/dist/types/WebViewTypes";
+} from '@amzn/webview/dist/types/WebViewTypes';
 import { BackHandler } from '@amzn/react-native-kepler';
 
 export interface TruexAdProps {
@@ -37,30 +38,13 @@ export function TruexAd(adProps: TruexAdProps) {
     //const url = 'https://ctv.truex.com/kepler/test/test-page.html?cb=' + Date.now();
     //const url = "https://qa-media.truex.com/container/3.x/current/ctv.html#creative_json_url=https%3A%2F%2Fqa-ee.truex.com%2Fstudio%2Fdrafts%2F5179%2Fconfig_json&session_id=100cfe41-7638-4e32-9383-4f0a1e6eebde&multivariate%5Bctv_footer_test%5D=T0&multivariate%5Bctv_relevance_enabled%5D=true";
     //const url = "https://ctv.truex.com/android/bridge/v2/branch-test/task_pi-2692_support-tar-kepler-webview/index.html";
-    //const url = "https://ctv.truex.com/android/bridge/v2/qa/index.html?test=1";
-    //const url = "https://ctv.truex.com/android/bridge/v2/qa/index.html?test_vast_config_url=qa-get.truex.com%2Fc39e2b60633fcda48cbbc60b9628af64cf23ff9d%2Fvast%2Fconfig%3Fdimension_1%3DPI-2447-C3-ctv-ad";
-    const url = "https://ctv.truex.com/android/bridge/v2/qa/index.html?test_vast_config_url=qa-get.truex.com%2Fc39e2b60633fcda48cbbc60b9628af64cf23ff9d%2Fvast%2Fconfig%3Fdimension_1%3DPI-2447-C3-ctv-ad";
+    const url = "https://ctv.truex.com/android/bridge/v2/qa/index.html";
     return { uri: url }
   }, []);
 
   const adContainerRef = useRef<View|null>(null);
   const webRef = useRef<WebViewMethods | null>(null);
   const didInjectionRef = useRef(false);
-
-  // Use a user agent the clearly reports this as a Kepler device.
-  const userAgent = useMemo<string>(() => {
-    const osName = DeviceInfo.getSystemName();
-    const osVersion = DeviceInfo.getSystemVersion();
-    const osBuild = DeviceInfo.getBuildIdSync();
-    const model = DeviceInfo.getModel();
-    const display = DeviceInfo.getDisplaySync();
-    const appId = DeviceInfo.getBundleId();
-    if (osName == 'unknown') {
-      return DeviceInfo.getUserAgentSync();
-    } else {
-      return `Kepler Webview (${osName}; ${osVersion}-${osBuild}; ${display}) ${model} ${appId}`;
-    }
-  }, []);
 
   const adEventWrapper = useCallback<AdEventHandler>((event, data) => {
     if (isCompletionEvent(event)) {
@@ -132,8 +116,10 @@ export function TruexAd(adProps: TruexAdProps) {
 
   return (
     <View style={styles.adContainer} ref={adContainerRef}>
-      <WebView ref={webRef} style={styles.webView} source={webSource}
-               javaScriptEnabled={true} allowSystemKeyEvents={true}
+      <WebView ref={webRef} style={styles.webView}
+               source={webSource}
+               javaScriptEnabled={true}
+               allowSystemKeyEvents={true}
                mediaPlaybackRequiresUserAction={false}
                hasTVPreferredFocus={true}
                onMessage={onWebViewMessage}
