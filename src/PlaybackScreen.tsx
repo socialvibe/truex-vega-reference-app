@@ -16,11 +16,11 @@ import {
   timeLabel
 } from './video/AdBreak';
 
-import { VideoStreamConfig } from './video/VideoStreamConfig';
 import { BackHandler, HWEvent, Image, useTVEventHandler } from '@amzn/react-native-kepler';
 import pauseIcon from './assets/pause.png';
 import playIcon from './assets/play.png';
 
+import { VideoStreamConfig } from './video/VideoStreamConfig';
 import videoStreamJson from './data/video-stream.json';
 import { TruexAdOptions } from './truex/TruexAdOptions';
 import { AdEventHandler, TruexAdEvent } from './truex/TruexAdEvent';

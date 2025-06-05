@@ -1,52 +1,71 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import 'react-native-gesture-handler';
 import { StyleSheet, View } from 'react-native';
-import { WebView } from '@amzn/webview';
 import { BackHandler } from '@amzn/react-native-kepler';
-import { WebViewMessageEvent, WebViewMethods } from '@amzn/webview/dist/types/WebViewTypes';
-import { AdEventData, signalAdEvent, TruexAdEvent } from './truex/TruexAdEvent';
+import uuid from 'react-native-uuid';
+import { TruexAdOptions } from './truex/TruexAdOptions';
+import { VideoStreamConfig } from './video/VideoStreamConfig';
+import videoStreamJson from './data/video-stream.json';
+import { AdEventHandler, TruexAdEvent } from './truex/TruexAdEvent';
+import TruexAd from './truex/TruexAd';
+
+const videoStream = videoStreamJson as VideoStreamConfig;
 
 export const App = () => {
-  const [showWebView, setShowWebView] = useState(true);
+  const [showTruexAd, setShowTruexAd] = useState(true);
 
-  const webRef = useRef<WebViewMethods | null>(null);
+  const onAdEvent: AdEventHandler = useCallback<AdEventHandler>(
+    (event, data) => {
+      console.log(`*** truex event: ${event}`);
+      switch (event) {
+        case TruexAdEvent.AdFreePod:
+          // Remember for later that we have the ad credit.
+          //hasAdCredit.current = true;
+          break;
 
-  const webSource = useMemo(() => {
-    //const url = 'https://ctv.truex.com/kepler/test/test-page.html?cb=' + Date.now();
-    //const url = "https://qa-media.truex.com/container/3.x/current/ctv.html#creative_json_url=https%3A%2F%2Fqa-ee.truex.com%2Fstudio%2Fdrafts%2F5179%2Fconfig_json&session_id=100cfe41-7638-4e32-9383-4f0a1e6eebde&multivariate%5Bctv_footer_test%5D=T0&multivariate%5Bctv_relevance_enabled%5D=true";
-    //const url = "https://ctv.truex.com/android/bridge/v2/release/index.html?test=1";
-    const url = "https://ctv.truex.com/android/bridge/v2/qa/index.html?test_vast_config_url=qa-get.truex.com%2Fc39e2b60633fcda48cbbc60b9628af64cf23ff9d%2Fvast%2Fconfig%3Fdimension_1%3DPI-2447-C3-ctv-ad";
-    return { uri: url }
-  }, []);
+        case TruexAdEvent.AdCompleted:
+        case TruexAdEvent.AdError:
+        case TruexAdEvent.NoAdsAvailable:
+          // Resume playback.
+          //play();
+          // if (hasAdCredit.current && afterAdResumeTarget.current !== undefined) {
+          //   // Skip over the fallback ads.
+          //   seekTo(afterAdResumeTarget.current);
+          // }
+          setShowTruexAd(false);
 
-  const onCloseWindow = useCallback(() => {
-    setShowWebView(false);
-  }, [showWebView]);
+          // ensure our page has the focus again
+          // @TODO does not seem to work however, we are still losing keyboard focus after webview unmounts
+          //pageRef.current?.focus();
+          break;
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     const onBackHandler = () => {
-      webRef.current?.goBack();
-      //BackHandler.exitApp();
+      BackHandler.exitApp();
       //setShowWebView(false);
       return true; // handled
     };
     BackHandler.addEventListener('hardwareBackPress', onBackHandler);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackHandler);
-  });
+  }, []);
+
+  const tarOptions = useMemo<TruexAdOptions>(() => {
+    const options: TruexAdOptions = {
+      // Ensure a unique user id to minimize no ads available
+      userAdvertisingId: uuid.v4() as string
+    };
+    return options;
+  }, []);
 
   return (
     <View style={styles.app}>
-      {showWebView && (
-      <WebView
-        ref={webRef}
-        style={styles.webView}
-        source={webSource}
-        javaScriptEnabled={true}
-        allowSystemKeyEvents={true}
-        mediaPlaybackRequiresUserAction={false}
-        hasTVPreferredFocus={true}
-        onCloseWindow={onCloseWindow}
-      />)}
+      {showTruexAd && (
+        <TruexAd vastConfigUrl={videoStream.adBreaks[0].vastUrl} options={tarOptions} onAdEvent={onAdEvent} />
+      )}
     </View>
   );
 };
@@ -59,11 +78,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#2222CC',
     display: 'flex',
     flex: 1
-  },
-  webView: {
-    backgroundColor: 'black',
-    margin: 0,
-    width: '100%',
-    height: '100%'
   }
 });
