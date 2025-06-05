@@ -33,37 +33,34 @@
     "kepler-install-release": "kepler device install-app --dir .",
     "kepler-install-debug": "kepler device install-app -b Debug --dir .",
     "kepler-start-app": "kepler device launch-app",
-    "kepler-stop-app": "kepler device terminate-app"
+    "kepler-stop-app": "kepler device terminate-app",
+    "kepler-restart-app": "run-s kepler-stop-app kepler-start-app"
   },
   "old-deps": {
     "@amzn/keplerscript-react-native-reanimated": "~2.0.0"
   },
   "dependencies": {
-    "@amzn/react-native-kepler": "~2.0.0",
-    "react": "18.2.0",
-    "react-native": "0.72.0",
-    "react-native-uuid": ">=2.0.1",
-
-    "@amzn/react-native-gesture-handler": "~2.0.0",
-
-    "@amzn/react-native-w3cmedia": "~2.1.1",
     "@amzn/react-native-device-info": "~2.0.0",
-
+    "@amzn/react-native-gesture-handler": "~2.0.0",
+    "@amzn/react-native-kepler": "~2.0.0",
     "@amzn/react-native-safe-area-context": "~2.0.0",
+    "@amzn/react-native-screens": "~2.0.0",
+    "@amzn/react-native-w3cmedia": "~2.1.1",
     "@amzn/react-navigation__core": "~7.0.0",
     "@amzn/react-navigation__drawer": "~7.0.0",
     "@amzn/react-navigation__native": "~7.0.0",
     "@amzn/react-navigation__routers": "~7.0.0",
     "@amzn/react-navigation__stack": "~7.0.0",
-    "@amzn/react-native-screens": "~2.0.0",
-
-    "@amzn/webview": "file:webview-3.2.0_0.19.tgz"
+    "@amzn/webview": "file:webview-3.2.0_0.19.tgz",
+    "react": "18.2.0",
+    "react-native": "0.72.0",
+    "react-native-uuid": ">=2.0.1"
   },
   "devDependencies": {
     "@amzn/kepler-cli-platform": "^0",
+    "@react-native-community/cli": "11.3.2",
     "@react-native/eslint-config": "0.72.2",
     "@react-native/metro-config": "^0.72.6",
-    "@react-native-community/cli": "11.3.2",
     "@testing-library/jest-native": "~5.4.3",
     "@testing-library/react-native": "~11.5.4",
     "@types/jest": "~28.1.8",
@@ -84,8 +81,12 @@
   "kepler": {
     "projectType": "application",
     "appName": "TruexKeplerRefApp",
-    "targets": ["tv"],
-    "features": ["vega"],
+    "targets": [
+      "tv"
+    ],
+    "features": [
+      "vega"
+    ],
     "api": 0.1
   }
 }

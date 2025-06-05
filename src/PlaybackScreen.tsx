@@ -4,6 +4,13 @@ import uuid from 'react-native-uuid';
 import { StackScreenProps } from '@amzn/react-navigation__stack';
 
 import { KeplerVideoSurfaceView, VideoPlayer } from '@amzn/react-native-w3cmedia';
+import {
+  BackHandler,
+  HWEvent,
+  Image,
+  useComponentInstance,
+  useTVEventHandler
+} from '@amzn/react-native-kepler';
 
 import {
   AdBreak,
@@ -17,7 +24,6 @@ import {
 } from './video/AdBreak';
 
 import { VideoStreamConfig } from './video/VideoStreamConfig';
-import { BackHandler, HWEvent, Image, useTVEventHandler } from '@amzn/react-native-kepler';
 import pauseIcon from './assets/pause.png';
 import playIcon from './assets/play.png';
 
@@ -25,6 +31,7 @@ import videoStreamJson from './data/video-stream.json';
 import { TruexAdOptions } from './truex/TruexAdOptions';
 import { AdEventHandler, TruexAdEvent } from './truex/TruexAdEvent';
 import TruexAd from './truex/TruexAd';
+import { PlayerControlsBlocker } from './PlayerControlsBlocker';
 
 const videoStream = videoStreamJson as VideoStreamConfig;
 
@@ -35,6 +42,7 @@ const debugVideoTime = true;
 export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const pageRef = useRef<View | null>(null);
   const video = useMemo(() => new VideoPlayer(), []);
+  const componentInstance = useComponentInstance();
 
   // Would be passed in as a page route arg in a real app, as would the video steam itself.
   const adPlaylist = useMemo(() => {
@@ -48,6 +56,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const showVideo = useCallback(() => {
     if (!surfaceRef.current) return;
     if (!video.src) return;
+    video.setMediaControlFocus(componentInstance, new PlayerControlsBlocker());
     video.setSurfaceHandle(surfaceRef.current);
     setCanPlayVideo(true);
   }, [video]);
@@ -425,6 +434,8 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackHandler);
   }, [showTruexAd]);
 
+  // In a real app we would use custom player controls via VideoPlayer's setMediaControlFocus method.
+  // For this app we are intentionally keeping things simple to concentrate on the TruexAd interactions.
   const onHWEvent = useCallback((evt: HWEvent) => {
     if (evt.eventKeyAction !== 0) return; // ignore key up events
     console.log(`*** key event: ${evt.eventType} showTruexAd: ${showTruexAd}`);
