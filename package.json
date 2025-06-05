@@ -16,8 +16,6 @@
     "rebuild": "run-s clean build",
     "build:release": "npm run build && react-native build-kepler --build-type Release",
     "build:debug": "npm run build && react-native build-kepler --build-type Debug",
-    "build:app": "npm-run-all build:release build:debug",
-    "release": "npm-run-all lint test build build:app",
 
     "kepler-simulator-debug": "kepler run-kepler build/vega-tv2023-aarch64-debug/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
     "kepler-simulator-release": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
