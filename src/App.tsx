@@ -45,13 +45,13 @@ export const App = () => {
 
   useEffect(() => {
     const onBackHandler = () => {
+      if (showTruexAd) return false; // let the truex ad handle the back action
       BackHandler.exitApp();
-      //setShowWebView(false);
       return true; // handled
     };
     BackHandler.addEventListener('hardwareBackPress', onBackHandler);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackHandler);
-  }, []);
+  }, [showTruexAd]);
 
   const tarOptions = useMemo<TruexAdOptions>(() => {
     const options: TruexAdOptions = {
