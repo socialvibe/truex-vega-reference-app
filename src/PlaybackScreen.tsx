@@ -169,17 +169,16 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         // Also set the ref, so allow reduced dependency re-renders.
         currAdBreakRef.current = adBreak;
 
-        const isTruex = adBreak?.isTruexAd || false;
-        setShowTruexAd(isTruex);
-
-        hasAdCredit.current = false;
-
-        if (isTruex) {
+        if (adBreak?.isTruexAd) {
+          setShowTruexAd(true);
+          hasAdCredit.current = false;
           console.log(`*** showing truex ad`);
           // pause the ad videos, will resume later once truex ad completes
           pause();
+
         } else if (adBreak) {
           console.log(`*** showing regular ad break`);
+
         } else {
           console.log(`*** removing ad break`);
         }
@@ -215,10 +214,11 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   );
 
   const seekTo = useCallback(
-    (newTime: number, afterSeek?: () => void) => {
+    (newTime: number, afterSeek?: () => void, seekNow: boolean = false) => {
       const newTarget = Math.max(0, Math.min(newTime, video.duration));
       if (newTarget == video.currentTime) {
         console.log('*** seekTo ignored: ' + timeDebug(newTarget, adPlaylist));
+
       } else {
         console.log('*** seekTo: ' + timeDebug(newTarget, adPlaylist));
         setSeekTarget(newTarget);
@@ -235,7 +235,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   }, [seekTarget]);
 
   const onSeekCompleted = useCallback(() => {
-    console.log("*** seek completed: " + timeDebug(video.currentTime, adPlaylist));
     const action = afterSeekAction.current;
     action?.();
     afterSeekAction.current = undefined;
@@ -257,8 +256,10 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
           play();
 
           const hideTruexAd = () => {
+            console.log("*** hiding truex");
             setShowTruexAd(false);
-            pageRef.current?.focus(); // ensure our page has the focus again
+            showAdBreak(undefined);
+//            pageRef.current?.focus(); // ensure our page has the focus again
           };
           if (hasAdCredit.current && currAdBreak) {
             // Skip over the rest of the ad break, ensuring we don't see
@@ -297,6 +298,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
     // does not seem to fire in the simulator, or the Kepler stick.
     const onSeeked = () => {
+      console.log("*** seek completed: " + timeDebug(video.currentTime, adPlaylist));
       setSeekTarget(-1);
       onSeekCompleted();
     };
@@ -338,6 +340,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         if (newSeekTarget && newSeekTarget != prevTarget) {
           return newSeekTarget; // we have a new seek target
         } else if (prevTarget >= 0 && Math.abs(prevTarget - newStreamTime) <= 2) {
+          console.log("*** seek completed implicitly: " + timeDebug(video.currentTime, adPlaylist));
           onSeekCompleted();
           return -1; // fallback approach to ensure we know when seeking is complete
         }
@@ -527,8 +530,8 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
           <Text style={styles.adLabel}>Ad</Text>
         </View>
       )}
-      {currAdBreak && showTruexAd && (
-        <TruexAd vastConfigUrl={currAdBreak.vastUrl} options={tarOptions} onAdEvent={onAdEvent} />
+      {showTruexAd && (
+        <TruexAd vastConfigUrl={currAdBreak?.vastUrl} options={tarOptions} onAdEvent={onAdEvent} />
       )}
     </View>
   );

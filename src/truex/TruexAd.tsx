@@ -17,7 +17,6 @@ import {
   WebViewMethods,
   WebViewNavigationEvent
 } from '@amzn/webview/dist/types/WebViewTypes';
-import { BackHandler } from '@amzn/react-native-kepler';
 
 export interface TruexAdProps {
   vastConfigUrl?: string;
@@ -35,10 +34,11 @@ export function TruexAd(adProps: TruexAdProps) {
   const [adComplete, setAdComplete] = useState(false);
 
   const webSource = useMemo(() => {
-    //const url = 'https://ctv.truex.com/kepler/test/test-page.html?cb=' + Date.now();
+    const prodUrl = "https://ctv.truex.com/android/bridge/v2/release/index.html";
+    const qaUrl = "https://ctv.truex.com/android/bridge/v2/qa/index.html";
+    const isProduction = vastConfigUrl ? vastConfigUrl.indexOf(".truex.com") >= 0 && vastConfigUrl.indexOf("qa-") < 0 : false;
+    const url = isProduction ? prodUrl : qaUrl;
     //const url = "https://qa-media.truex.com/container/3.x/current/ctv.html#creative_json_url=https%3A%2F%2Fqa-ee.truex.com%2Fstudio%2Fdrafts%2F5179%2Fconfig_json&session_id=100cfe41-7638-4e32-9383-4f0a1e6eebde&multivariate%5Bctv_footer_test%5D=T0&multivariate%5Bctv_relevance_enabled%5D=true";
-    //const url = "https://ctv.truex.com/android/bridge/v2/branch-test/task_pi-2692_support-tar-kepler-webview/index.html";
-    const url = "https://ctv.truex.com/android/bridge/v2/qa/index.html";
     return { uri: url }
   }, []);
 
@@ -57,20 +57,10 @@ export function TruexAd(adProps: TruexAdProps) {
   }, [onAdEvent]);
 
   useEffect(() => {
-    if (vastConfigUrl) console.log(`TruexAd: using vast config url: ${vastConfigUrl}`);
+    if (!vastConfigUrl || adComplete) return;
+    console.log(`TruexAd: using vast config url: ${vastConfigUrl}`);
     injectInitialStyles(webRef.current, onAdEvent);
-  }, [onAdEvent, adEventWrapper, vastConfigUrl]);
-
-  useEffect(() => {
-    // Intercept back actions, direct the web page to go back in its history/
-    const onBackHandler = () => {
-      console.log("*** back: TruexAd");
-      webRef.current?.goBack();
-      return true; // handled
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackHandler);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackHandler);
-  }, []);
+  }, [onAdEvent, adEventWrapper, vastConfigUrl, adComplete]);
 
   const onWebViewMessage = useCallback((msgEvent: WebViewMessageEvent) => {
     const message = JSON.parse(msgEvent.nativeEvent.data);
@@ -110,22 +100,20 @@ export function TruexAd(adProps: TruexAdProps) {
     }
   }, [adProps, onAdEvent]);
 
-  // Show nothing if the ad is complete. Clients are supposed to remove the TruexAd view themselves,
-  // but this serves as a backup.
-  if (adComplete) return <></>;
-
   return (
     <View style={styles.adContainer} ref={adContainerRef}>
-      <WebView ref={webRef} style={styles.webView}
-               source={webSource}
-               javaScriptEnabled={true}
-               allowSystemKeyEvents={true}
-               mediaPlaybackRequiresUserAction={false}
-               hasTVPreferredFocus={true}
-               onMessage={onWebViewMessage}
-               onError={onWebViewError}
-               onLoad={onWebViewLoad}
-      />
+      {vastConfigUrl && !adComplete && (
+        <WebView ref={webRef} style={styles.webView}
+                 source={webSource}
+                 javaScriptEnabled={true}
+                 allowSystemKeyEvents={true}
+                 mediaPlaybackRequiresUserAction={false}
+                 hasTVPreferredFocus={true}
+                 onMessage={onWebViewMessage}
+                 onError={onWebViewError}
+                 onLoad={onWebViewLoad}
+        />
+    )}
     </View>
   );
 }
