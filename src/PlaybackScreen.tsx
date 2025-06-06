@@ -109,6 +109,8 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const [isShowingControls, setIsShowingControls] = useState(false);
   const [seekTarget, setSeekTarget] = useState(-1);
 
+  const afterSeekAction = useRef<() => void>();
+
   const [currStreamTime, setCurrStreamTime] = useState(0);
 
   const [currAdBreak, setCurrAdBreak] = useState<AdBreak | undefined>();
@@ -124,7 +126,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   }, []);
 
   const hasAdCredit = useRef(false);
-  const afterAdResumeTarget = useRef<number | undefined>();
 
   const controlsDisplayTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>();
 
@@ -173,9 +174,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
         hasAdCredit.current = false;
 
-        // ensure we don't see the last second of the ad
-        afterAdResumeTarget.current = adBreak ? adBreak.endTime + 1 : undefined;
-
         if (isTruex) {
           console.log(`*** showing truex ad`);
           // pause the ad videos, will resume later once truex ad completes
@@ -217,18 +215,31 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   );
 
   const seekTo = useCallback(
-    (newTime: number) => {
+    (newTime: number, afterSeek?: () => void) => {
       const newTarget = Math.max(0, Math.min(newTime, video.duration));
       if (newTarget == video.currentTime) {
         console.log('*** seekTo ignored: ' + timeDebug(newTarget, adPlaylist));
       } else {
         console.log('*** seekTo: ' + timeDebug(newTarget, adPlaylist));
         setSeekTarget(newTarget);
-        video.currentTime = newTarget;
+        afterSeekAction.current = afterSeek;
       }
     },
     [video, adPlaylist]
   );
+
+  // Normally we perform the actual seek in the next rendering pass, so as to allow the control bar UX
+  // to update first.
+  useEffect(() => {
+    if (seekTarget >= 0) video.currentTime = seekTarget;
+  }, [seekTarget]);
+
+  const onSeekCompleted = useCallback(() => {
+    console.log("*** seek completed: " + timeDebug(video.currentTime, adPlaylist));
+    const action = afterSeekAction.current;
+    action?.();
+    afterSeekAction.current = undefined;
+  }, []);
 
   const onAdEvent: AdEventHandler = useCallback<AdEventHandler>(
     (event, data) => {
@@ -244,20 +255,21 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         case TruexAdEvent.NoAdsAvailable:
           // Resume playback.
           play();
-          if (hasAdCredit.current && afterAdResumeTarget.current !== undefined) {
-            // Skip over the fallback ads.
-            seekTo(afterAdResumeTarget.current);
-          }
-          setShowTruexAd(false);
 
-          // ensure our page has the focus again
-          // @TODO does not seem to work however, we are still losing keyboard focus after webview unmounts
-          pageRef.current?.focus();
+          const hideTruexAd = () => {
+            setShowTruexAd(false);
+            pageRef.current?.focus(); // ensure our page has the focus again
+          };
+          if (hasAdCredit.current && currAdBreak) {
+            // Skip over the rest of the ad break, ensuring we don't see
+            // the last second of the ad.
+            seekTo(currAdBreak.endTime + 1, hideTruexAd);
+          } else {
+            hideTruexAd();
+          }
           break;
       }
-    },
-    [seekTo, play]
-  );
+    }, [seekTo, play, currAdBreak]);
 
   useEffect(() => {
     // Show controls initially.
@@ -285,8 +297,8 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
     // does not seem to fire in the simulator, or the Kepler stick.
     const onSeeked = () => {
-      console.log("*** seek complete: " + timeDebug(video.currentTime, adPlaylist));
       setSeekTarget(-1);
+      onSeekCompleted();
     };
 
     const onTimeUpdate = (event: any) => {
@@ -326,7 +338,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         if (newSeekTarget && newSeekTarget != prevTarget) {
           return newSeekTarget; // we have a new seek target
         } else if (prevTarget >= 0 && Math.abs(prevTarget - newStreamTime) <= 2) {
-          console.log("*** seek completed implicitly: " + timeDebug(video.currentTime, adPlaylist));
+          onSeekCompleted();
           return -1; // fallback approach to ensure we know when seeking is complete
         }
         return prevTarget;
