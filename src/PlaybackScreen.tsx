@@ -282,10 +282,12 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   useEffect(() => {
     const onPlaying = () => setPlaying(true);
     const onPaused = () => setPlaying(false);
+
+    // does not seem to fire in the simulator, or the Kepler stick.
     const onSeeked = () => {
       console.log("*** seek complete: " + timeDebug(video.currentTime, adPlaylist));
       setSeekTarget(-1);
-    }; // does not seem to fire in the simulator
+    };
 
     const onTimeUpdate = (event: any) => {
       const newStreamTime = Math.floor(video.currentTime);
