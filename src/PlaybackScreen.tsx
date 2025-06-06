@@ -42,7 +42,6 @@ const debugVideoTime = true;
 export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const pageRef = useRef<View | null>(null);
   const video = useMemo(() => new VideoPlayer(), []);
-  const componentInstance = useComponentInstance();
 
   // Would be passed in as a page route arg in a real app, as would the video steam itself.
   const adPlaylist = useMemo<AdBreak[]>(() => {
@@ -53,10 +52,15 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   const [canPlayVideo, setCanPlayVideo] = useState(false);
 
+  const componentInstance = useComponentInstance();
+
   const showVideo = useCallback(() => {
     if (!surfaceRef.current) return;
     if (!video.src) return;
+
+    // Block the default player control responses to key strokes, so we can freely control the player from this page.
     video.setMediaControlFocus(componentInstance, new PlayerControlsBlocker());
+
     video.setSurfaceHandle(surfaceRef.current);
     setCanPlayVideo(true);
   }, [video]);
