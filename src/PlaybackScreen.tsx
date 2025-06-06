@@ -45,7 +45,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const componentInstance = useComponentInstance();
 
   // Would be passed in as a page route arg in a real app, as would the video steam itself.
-  const adPlaylist = useMemo(() => {
+  const adPlaylist = useMemo<AdBreak[]>(() => {
     return getAdBreaks(videoStream.adBreaks);
   }, []);
 
@@ -158,7 +158,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   const showAdBreak = useCallback(
     (adBreak: AdBreak | undefined) => {
-      return;
       setCurrAdBreak(prevAdBreak => {
         if (prevAdBreak == adBreak) return prevAdBreak;
 
@@ -197,12 +196,15 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     () => getVideoContentTimeAt(video.duration, adPlaylist),
     [video.duration, adPlaylist]
   );
-  const currDisplayTime = useMemo(() => {
+
+  const currStreamDisplayTime = useMemo(() => {
+    return getVideoContentTimeAt(currStreamTime, adPlaylist, currAdBreak);
+  }, [currStreamTime, adPlaylist, currAdBreak]);
+
+  const currStreamOrSeekDisplayTime = useMemo(() => {
     // Show the seek target instead of the playback time if it is active.
     const streamTimeToShow = seekTarget >= 0 ? seekTarget : currStreamTime;
-    const displayResult = getVideoContentTimeAt(streamTimeToShow, adPlaylist, currAdBreak);
-    debugVideoPosition("display time update: " + timeLabel(displayResult), streamTimeToShow, adPlaylist, currAdBreak);
-    return displayResult;
+    return getVideoContentTimeAt(streamTimeToShow, adPlaylist, currAdBreak);
   }, [seekTarget, currStreamTime, adPlaylist, currAdBreak]);
 
   const currDisplayDuration = useMemo(
@@ -276,7 +278,10 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   useEffect(() => {
     const onPlaying = () => setPlaying(true);
     const onPaused = () => setPlaying(false);
-    const onSeeked = () => setSeekTarget(-1); // does not seem to fire in the simulator
+    const onSeeked = () => {
+      console.log("*** seek complete: " + timeDebug(video.currentTime, adPlaylist));
+      setSeekTarget(-1);
+    }; // does not seem to fire in the simulator
 
     const onTimeUpdate = (event: any) => {
       const newStreamTime = Math.floor(video.currentTime);
@@ -315,7 +320,8 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         if (newSeekTarget && newSeekTarget != prevTarget) {
           return newSeekTarget; // we have a new seek target
         } else if (prevTarget >= 0 && Math.abs(prevTarget - newStreamTime) <= 2) {
-          return -1; // backup to ensure we know when seeking is complete
+          console.log("*** seek completed implicitly: " + timeDebug(video.currentTime, adPlaylist));
+          return -1; // fallback approach to ensure we know when seeking is complete
         }
         return prevTarget;
       });
@@ -340,9 +346,9 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     const progressBar = styles.timelineProgress;
     return {
       ...progressBar,
-      width: timelineWidth(currDisplayTime, currDisplayDuration)
+      width: timelineWidth(currStreamDisplayTime, currDisplayDuration)
     };
-  }, [currDisplayTime, currDisplayDuration]);
+  }, [currStreamDisplayTime, currDisplayDuration]);
 
   const seekLayout = useMemo(() => {
     let seekBarX = 0;
@@ -353,12 +359,12 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
       // Stay within the current ad break or the overall video.
       const constrainedTarget = Math.max(minSeekTarget, Math.min(maxSeekTarget, seekTarget));
       const displayTarget = getVideoContentTimeAt(constrainedTarget, adPlaylist, currAdBreak);
-      const targetDisplayDiff = Math.abs(displayTarget - currDisplayTime);
+      const targetDisplayDiff = Math.abs(displayTarget - currStreamDisplayTime);
       seekBarW = timelineWidth(targetDisplayDiff, currDisplayDuration);
-      if (currDisplayTime <= displayTarget) {
-        seekBarX = timelineWidth(currDisplayTime, currDisplayDuration);
+      if (currStreamDisplayTime <= displayTarget) {
+        seekBarX = timelineWidth(currStreamDisplayTime, currDisplayDuration);
       } else {
-        seekBarX = timelineWidth(currDisplayTime - targetDisplayDiff, currDisplayDuration);
+        seekBarX = timelineWidth(currStreamDisplayTime - targetDisplayDiff, currDisplayDuration);
       }
     }
     return {
@@ -366,28 +372,28 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
       width: seekBarW,
       left: seekBarX
     };
-  }, [seekTarget, video.duration, currAdBreak, adPlaylist, currDisplayTime, currDisplayDuration]);
+  }, [seekTarget, video.duration, currAdBreak, adPlaylist, currStreamDisplayTime, currDisplayDuration]);
 
   const timeDisplayLayout = useMemo(() => {
     return {
       ...styles.currentTime,
-      left: timelineWidth(currDisplayTime, currDisplayDuration)
+      left: timelineWidth(currStreamOrSeekDisplayTime, currDisplayDuration)
     };
-  }, [currDisplayTime, currDisplayDuration]);
+  }, [currStreamOrSeekDisplayTime, currDisplayDuration]);
 
   const seekStep = useCallback(
     (steps: number) => {
       if (disableSeeksInAds && currAdBreak) return;
 
-      const minStepSeconds = 10;
+      const minStepSeconds = 60; //10;
       const maxSeekSteps = 70; // ensure seek stepping has reasonable progress even on long videos.
       const stepSeconds =
         currDisplayDuration > 0
           ? Math.max(minStepSeconds, Math.round(currDisplayDuration / maxSeekSteps))
           : minStepSeconds;
 
-
-      const initialTarget = Math.max(0, currStreamTime + steps * stepSeconds);
+      const currSeekTime = seekTarget >= 0 ? seekTarget : currStreamTime;
+      const initialTarget = Math.max(0, currSeekTime + steps * stepSeconds);
       let newTarget = initialTarget;
 
       if (currAdBreak) {
@@ -395,12 +401,13 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
       } else {
         // We are stepping thru content, ensure we skip over completed ads, stop on unplayed ones.
-        const newContentTarget = Math.max(0, currContentTime + steps * stepSeconds);
+        const seekContentTarget = getVideoContentTimeAt(currSeekTime, adPlaylist);
+        const newContentTarget = Math.max(0, seekContentTarget + steps * stepSeconds);
         newTarget = getVideoStreamTimeAt(newContentTarget, adPlaylist);
-        const nextAdBreak = getNextAdBreak(Math.min(currStreamTime, newTarget), adPlaylist);
+        const nextAdBreak = getNextAdBreak(Math.min(currSeekTime, newTarget), adPlaylist);
         if (nextAdBreak) {
-          const skipForwardOverAdBreak = currStreamTime < newTarget && nextAdBreak.startTime < newTarget;
-          const skipBackOverAdBreak = newTarget < currStreamTime && nextAdBreak.startTime < currStreamTime;
+          const skipForwardOverAdBreak = currSeekTime < newTarget && nextAdBreak.startTime < newTarget;
+          const skipBackOverAdBreak = newTarget < currSeekTime && nextAdBreak.startTime < currSeekTime;
           if (newTarget == nextAdBreak.startTime && nextAdBreak.completed) {
             // We are landing on a completed ad, just skip over it.
             newTarget = nextAdBreak.endTime + 1; // ensure we don't see the last second of the ad
@@ -414,7 +421,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
             }
           }
         }
-
 //         console.log(`*** seekStep: step: ${steps} stepS: ${stepSeconds}
 // *** iT: ${timeDebug(initialTarget, adPlaylist)} cT: ${timeDebug(newContentTarget, adPlaylist)} nT: ${timeDebug(newTarget, adPlaylist)}`)
       }
@@ -422,7 +428,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
       seekTo(newTarget);
       showControls(true);
     },
-    [adPlaylist, currStreamTime, currContentTime, currAdBreak, currDisplayDuration, seekTo, showControls]
+    [adPlaylist, currStreamTime, currContentTime, currAdBreak, currDisplayDuration, seekTo, showControls, seekTarget]
   );
 
   useEffect(() => {
@@ -477,7 +483,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     <View style={styles.playbackPage} ref={pageRef}>
       <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} />
       {isShowingControls && !showTruexAd && (
-        <View style={styles.controlBar2}>
+        <View style={styles.controlBar}>
           <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon} />
           <View style={styles.timeline}>
             <View style={progressBarLayout} />
@@ -490,7 +496,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
               </View>
             )}
             <View style={timeDisplayLayout}>
-              <Text style={styles.timeLabel}>{timeLabel(currDisplayTime)}</Text>
+              <Text style={styles.timeLabel}>{timeLabel(currStreamOrSeekDisplayTime)}</Text>
             </View>
           </View>
           <View style={styles.duration}>
