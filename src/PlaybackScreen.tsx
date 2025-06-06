@@ -52,6 +52,30 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   const [canPlayVideo, setCanPlayVideo] = useState(false);
 
+  const [isPlaying, setPlaying] = useState(false);
+  const [isShowingControls, setIsShowingControls] = useState(false);
+  const [seekTarget, setSeekTarget] = useState(-1);
+
+  const afterSeekAction = useRef<() => void>();
+
+  const [currStreamTime, setCurrStreamTime] = useState(0);
+
+  const [currAdBreak, setCurrAdBreak] = useState<AdBreak | undefined>();
+  const currAdBreakRef = useRef<AdBreak | undefined>(); // use to reduce re-renders, see video event listeners below
+  const [showTruexAd, setShowTruexAd] = useState(false);
+
+  const tarOptions = useMemo<TruexAdOptions>(() => {
+    const options: TruexAdOptions = {
+      // Ensure a unique user id to minimize no ads available
+      userAdvertisingId: uuid.v4() as string
+    };
+    return options;
+  }, []);
+
+  const hasAdCredit = useRef(false);
+
+  const controlsDisplayTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>();
+
   const componentInstance = useComponentInstance();
 
   const showVideo = useCallback(() => {
@@ -79,6 +103,18 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     return true;
   }, [navigation, stopVideo]);
 
+  const videoStyles = useMemo(() => {
+    const display : 'none' | 'flex' = showTruexAd ? 'none' : 'flex';
+    const opacity = showTruexAd ? 0 : 1;
+    return {
+      ...styles.videoView,
+      // Hide the video when showing Truex, to avoid the "flicker" interference of the main video
+      // flashing briefly in the truex ad videos.
+      display,
+      opacity
+    };
+  }, [showTruexAd]);
+
   useEffect(() => {
     console.log('*** playback page mounted');
 
@@ -104,30 +140,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     surfaceRef.current = surfaceHandle;
     showVideo();
   };
-
-  const [isPlaying, setPlaying] = useState(false);
-  const [isShowingControls, setIsShowingControls] = useState(false);
-  const [seekTarget, setSeekTarget] = useState(-1);
-
-  const afterSeekAction = useRef<() => void>();
-
-  const [currStreamTime, setCurrStreamTime] = useState(0);
-
-  const [currAdBreak, setCurrAdBreak] = useState<AdBreak | undefined>();
-  const currAdBreakRef = useRef<AdBreak | undefined>(); // use to reduce re-renders, see video event listeners below
-  const [showTruexAd, setShowTruexAd] = useState(false);
-
-  const tarOptions = useMemo<TruexAdOptions>(() => {
-    const options: TruexAdOptions = {
-      // Ensure a unique user id to minimize no ads available
-      userAdvertisingId: uuid.v4() as string
-    };
-    return options;
-  }, []);
-
-  const hasAdCredit = useRef(false);
-
-  const controlsDisplayTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>();
 
   function stopControlsDisplayTimer() {
     if (controlsDisplayTimerRef.current) {
@@ -501,7 +513,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   return (
     <View style={styles.playbackPage} ref={pageRef}>
-      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} />
+      <KeplerVideoSurfaceView style={videoStyles} onSurfaceViewCreated={onSurfaceViewCreated} />
       {isShowingControls && !showTruexAd && (
         <View style={styles.controlBar}>
           <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon} />
@@ -586,21 +598,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     padding: padding
   },
-
-  // Use these control bar styles instead to see how it is supposed to look.
-  controlBar2: {
-    position: 'absolute',
-    left: 120,
-    bottom: 240,
-    flexDirection: 'row',
-    verticalAlign: 'middle',
-    textAlign: 'center',
-    alignItems: 'center',
-    height: controlBarH,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: padding
-  },
-
   playPauseIcon: {
     width: playSize,
     height: playSize
