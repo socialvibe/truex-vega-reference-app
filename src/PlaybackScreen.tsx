@@ -258,7 +258,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
           const hideTruexAd = () => {
             console.log("*** hiding truex");
             setShowTruexAd(false);
-            showAdBreak(undefined);
 //            pageRef.current?.focus(); // ensure our page has the focus again
           };
           if (hasAdCredit.current && currAdBreak) {
@@ -406,8 +405,8 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     (steps: number) => {
       if (disableSeeksInAds && currAdBreak) return;
 
-      const minStepSeconds = 60; //10;
-      const maxSeekSteps = 70; // ensure seek stepping has reasonable progress even on long videos.
+      const minStepSeconds = 20; //10;
+      const maxSeekSteps = 50; // ensure seek stepping has reasonable progress even on long videos.
       const stepSeconds =
         currDisplayDuration > 0
           ? Math.max(minStepSeconds, Math.round(currDisplayDuration / maxSeekSteps))
