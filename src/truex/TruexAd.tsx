@@ -164,7 +164,7 @@ try {
       addParam('vastConfigUrl', ${JSON.stringify(vastConfigUrl)});
       addParam('userAdvertisingId', ${JSON.stringify(userId)});
       addParam('appId', ${JSON.stringify(appId)});
-      addParam('useIntegration', {name: "TAR Kepler", version: "0.0.1"}); // TODO: get proper version
+      addParam('useIntegration', {name: "TAR Kepler", version: "0.0.1"}); // TODO: get proper version from config.version
       return JSON.stringify(params);
     }
   };
