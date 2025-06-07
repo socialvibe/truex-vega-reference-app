@@ -538,12 +538,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         </View>
       )}
       {showTruexAd && (
-        // <TruexAd style={styles.adContainer} vastConfigUrl={currAdBreak?.vastUrl} options={tarOptions} onAdEvent={onAdEvent} />
-        <View style={styles.adContainer}>
-          <View style={styles.testCover}></View>
-          <TruexAd vastConfigUrl={currAdBreak?.vastUrl} options={tarOptions} onAdEvent={onAdEvent} />
-          {/*<View style={styles.testCover}></View>*/}
-        </View>
+        <TruexAd vastConfigUrl={currAdBreak?.vastUrl} options={tarOptions} onAdEvent={onAdEvent} />
       )}
     </View>
   );
@@ -565,24 +560,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: '#606060'
-  },
-  adContainer: {
-    top: 0,
-    left: 0,
-    position: 'absolute',
-    margin: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#229922'
-  },
-  testCover: {
-    top: 0,
-    left: 0,
-    position: 'absolute',
-    margin: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#999922'
   },
   videoView: {
     top: 0,
