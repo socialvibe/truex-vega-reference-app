@@ -42,7 +42,6 @@ export function TruexAd(adProps: TruexAdProps) {
     return { uri: url }
   }, []);
 
-  const adContainerRef = useRef<View|null>(null);
   const webRef = useRef<WebViewMethods | null>(null);
   const didInjectionRef = useRef(false);
 
@@ -50,8 +49,6 @@ export function TruexAd(adProps: TruexAdProps) {
     if (isCompletionEvent(event)) {
       // Ensure the truex ad ux is no longer visible.
       setAdComplete(true);
-      adContainerRef.current?.focus(); // take the focus away from the web view.
-      adContainerRef.current?.blur(); // and clear it
     }
     onAdEvent(event, data);
   }, [onAdEvent]);
@@ -100,28 +97,24 @@ export function TruexAd(adProps: TruexAdProps) {
     }
   }, [adProps, onAdEvent]);
 
-  const showWebView = vastConfigUrl && !adComplete;
-
   return (
-    <View style={styles.fullSizeCover} ref={adContainerRef}>
-        <WebView ref={webRef} style={styles.fullSizeCover}
-                 source={webSource}
-                 javaScriptEnabled={true}
-                 allowSystemKeyEvents={true}
-                 mediaPlaybackRequiresUserAction={false}
-                 hasTVPreferredFocus={true}
-                 onMessage={onWebViewMessage}
-                 onError={onWebViewError}
-                 onLoad={onWebViewLoad}
-        />
-    </View>
+      <WebView ref={webRef} style={styles.fullSize}
+               source={webSource}
+               javaScriptEnabled={true}
+               allowSystemKeyEvents={true}
+               mediaPlaybackRequiresUserAction={false}
+               hasTVPreferredFocus={true}
+               onMessage={onWebViewMessage}
+               onError={onWebViewError}
+               onLoad={onWebViewLoad}
+      />
   );
 }
 
 export default TruexAd;
 
 const styles = StyleSheet.create({
-  fullSizeCover: {
+  fullSize: {
     position: 'absolute',
     top: 0,
     left: 0,
