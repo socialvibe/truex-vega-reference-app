@@ -104,7 +104,6 @@ export function TruexAd(adProps: TruexAdProps) {
 
   return (
     <View style={styles.fullSizeCover} ref={adContainerRef}>
-      {showWebView && (
         <WebView ref={webRef} style={styles.fullSizeCover}
                  source={webSource}
                  javaScriptEnabled={true}
@@ -115,7 +114,6 @@ export function TruexAd(adProps: TruexAdProps) {
                  onError={onWebViewError}
                  onLoad={onWebViewLoad}
         />
-      )}
       {!showWebView && (
         // Show a black cover to hide flickers where the underlying main video peeks thru.
         <View style={styles.fullSizeCover}></View>

@@ -63,6 +63,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   const [currAdBreak, setCurrAdBreak] = useState<AdBreak | undefined>();
   const currAdBreakRef = useRef<AdBreak | undefined>(); // use to reduce re-renders, see video event listeners below
   const [showTruexAd, setShowTruexAd] = useState(false);
+  const [completeTruexAd, setCompleteTruexAd] = useState(false);
 
   const tarOptions = useMemo<TruexAdOptions>(() => {
     const options: TruexAdOptions = {
@@ -183,9 +184,10 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         currAdBreakRef.current = adBreak;
 
         if (adBreak?.isTruexAd) {
+          console.log(`*** showing truex ad`);
           setShowTruexAd(true);
           hasAdCredit.current = false;
-          console.log(`*** showing truex ad`);
+          setCompleteTruexAd(false);
           // pause the ad videos, will resume later once truex ad completes
           pause();
 
@@ -268,16 +270,18 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
           // Resume playback.
           play();
 
-          const hideTruexAd = () => {
-            console.log("*** hiding truex");
-            setShowTruexAd(false);
+          const finalizeTruexAd = () => {
+            // finalize the truex completion in the next render pass.
+            console.log("*** complete truex");
+            setCompleteTruexAd(true);
           };
+
           if (hasAdCredit.current && currAdBreak) {
-            // Skip over the rest of the ad break, ensuring we don't see
-            // the last second of the ad.
-            seekTo(currAdBreak.endTime + 1, hideTruexAd);
+            // Show the main video again once we have skipped over the ad break,
+            // ensuring we don't see the last second of the ad.
+            seekTo(currAdBreak.endTime + 1, finalizeTruexAd);
           } else {
-            hideTruexAd();
+            finalizeTruexAd();
           }
           break;
       }
@@ -472,6 +476,15 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     BackHandler.addEventListener('hardwareBackPress', onBackHandler);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackHandler);
   }, [showTruexAd, navigateBack]);
+
+  // Complete the truex ad in a subsequent render pass to allow the UX to catch up.
+  // In particular, we try to hide the main video "flash thru" as the truex ad view
+  // is hidden after seeking the ad break.
+  useEffect(() => {
+    if (!completeTruexAd) return;
+    // Now it is safe to hide the truex ad overlay.
+    setShowTruexAd(false);
+  }, [completeTruexAd]);
 
   // In a real app we would use custom player controls via VideoPlayer's setMediaControlFocus method.
   // For this app we are intentionally keeping things simple to concentrate on the TruexAd interactions.
