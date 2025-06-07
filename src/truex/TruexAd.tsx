@@ -210,17 +210,17 @@ try {
 
 function injectJS(context: string, jsCode: string, webView: any, onAdEvent: AdEventHandler) {
   if (!webView) {
-    report('no webView present to inject code with');
+    reportError('no webView present to inject code with');
     return;
   }
   try {
     console.log(`TruexAd: injecting ${context}`);
     webView.injectJavaScript(jsCode);
   } catch (err: any) {
-    report('could not inject webview code: ' + err);
+    reportError('could not inject webview code: ' + err);
   }
 
-  function report(errMsg: string) {
+  function reportError(errMsg: string) {
     console.error(`TruexAd: ${errMsg}`);
     signalAdError(errMsg, onAdEvent);
   }
