@@ -31,8 +31,6 @@ export interface TruexAdProps {
 export function TruexAd(adProps: TruexAdProps) {
   const { vastConfigUrl, options, onAdEvent } = adProps;
 
-  const [adComplete, setAdComplete] = useState(false);
-
   const webSource = useMemo(() => {
     const prodUrl = "https://ctv.truex.com/android/bridge/v2/release/index.html";
     const qaUrl = "https://ctv.truex.com/android/bridge/v2/qa/index.html";
@@ -43,21 +41,17 @@ export function TruexAd(adProps: TruexAdProps) {
   }, []);
 
   const webRef = useRef<WebViewMethods | null>(null);
-  const didInjectionRef = useRef(false);
+  const webViewLoaded = useRef(false);
 
   const adEventWrapper = useCallback<AdEventHandler>((event, data) => {
-    if (isCompletionEvent(event)) {
-      // Ensure the truex ad ux is no longer visible.
-      setAdComplete(true);
-    }
     onAdEvent(event, data);
   }, [onAdEvent]);
 
   useEffect(() => {
-    if (!vastConfigUrl || adComplete) return;
+    if (!vastConfigUrl || webViewLoaded.current) return;
     console.log(`TruexAd: using vast config url: ${vastConfigUrl}`);
     injectInitialStyles(webRef.current, onAdEvent);
-  }, [onAdEvent, adEventWrapper, vastConfigUrl, adComplete]);
+  }, [onAdEvent, adEventWrapper, vastConfigUrl]);
 
   const onWebViewMessage = useCallback((msgEvent: WebViewMessageEvent) => {
     const message = JSON.parse(msgEvent.nativeEvent.data);
@@ -91,10 +85,9 @@ export function TruexAd(adProps: TruexAdProps) {
 
   const onWebViewLoad = useCallback((event: WebViewNavigationEvent) => {
     console.log(`TruexAd: onWebViewLoad: ${event.nativeEvent.url}`);
-    if (!didInjectionRef.current) {
-      didInjectionRef.current = true;
-      injectAdParameters(webRef.current, adProps, onAdEvent); // Start the TAR web view running.
-    }
+    if (webViewLoaded.current) return;
+    webViewLoaded.current = true;
+    injectAdParameters(webRef.current, adProps, onAdEvent); // Start the TAR web view running.
   }, [adProps, onAdEvent]);
 
   return (
