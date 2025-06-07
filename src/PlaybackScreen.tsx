@@ -230,10 +230,10 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     (newTime: number, afterSeek?: () => void, seekNow: boolean = false) => {
       const newTarget = Math.max(0, Math.min(newTime, video.duration));
       if (newTarget == video.currentTime) {
-        console.log('*** seekTo ignored: ' + timeDebug(newTarget, adPlaylist));
+        debugVideoPosition("seekTo ignored", newTarget, adPlaylist);
 
       } else {
-        console.log('*** seekTo: ' + timeDebug(newTarget, adPlaylist));
+        debugVideoPosition("seekTo", newTarget, adPlaylist);
         setSeekTarget(newTarget);
         afterSeekAction.current = afterSeek;
       }
@@ -268,18 +268,17 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
           // Resume playback.
           play();
 
-          const finalizeTruexAd = () => {
+          const hideTruexAd = () => {
             // finalize the truex completion in the next render pass.
-            console.log("*** hiding truex");
             setShowTruexAd(false);
           };
 
           if (hasAdCredit.current && currAdBreak) {
             // Show the main video again once we have skipped over the ad break,
             // ensuring we don't see the last second of the ad.
-            seekTo(currAdBreak.endTime + 1, finalizeTruexAd);
+            seekTo(currAdBreak.endTime + 1, hideTruexAd);
           } else {
-            finalizeTruexAd();
+            hideTruexAd();
           }
           break;
       }
@@ -311,7 +310,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
     // does not seem to fire in the simulator, or the Kepler stick.
     const onSeeked = () => {
-      console.log("*** seek completed: " + timeDebug(video.currentTime, adPlaylist));
+      debugVideoPosition("seek completed", video.currentTime, adPlaylist);
       setSeekTarget(-1);
       onSeekCompleted();
     };
@@ -353,7 +352,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         if (newSeekTarget && newSeekTarget != prevTarget) {
           return newSeekTarget; // we have a new seek target
         } else if (prevTarget >= 0 && Math.abs(prevTarget - newStreamTime) <= 2) {
-          console.log("*** seek completed implicitly: " + timeDebug(video.currentTime, adPlaylist));
+          debugVideoPosition("seek completed implicitly", video.currentTime, adPlaylist);
           onSeekCompleted();
           return -1; // fallback approach to ensure we know when seeking is complete
         }
@@ -361,14 +360,12 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
       });
     };
 
-    console.log('*** video adding event listeners');
     video.addEventListener('playing', onPlaying);
     video.addEventListener('paused', onPaused);
     video.addEventListener('timeupdate', onTimeUpdate);
     video.addEventListener('seeked', onSeeked);
 
     return () => {
-      console.log('*** video removing event listeners');
       video.removeEventListener('playing', onPlaying);
       video.removeEventListener('paused', onPaused);
       video.removeEventListener('timeupdate', onTimeUpdate);
@@ -455,8 +452,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
             }
           }
         }
-//         console.log(`*** seekStep: step: ${steps} stepS: ${stepSeconds}
-// *** iT: ${timeDebug(initialTarget, adPlaylist)} cT: ${timeDebug(newContentTarget, adPlaylist)} nT: ${timeDebug(newTarget, adPlaylist)}`)
       }
 
       seekTo(newTarget);
