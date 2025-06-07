@@ -100,10 +100,12 @@ export function TruexAd(adProps: TruexAdProps) {
     }
   }, [adProps, onAdEvent]);
 
+  const showWebView = vastConfigUrl && !adComplete;
+
   return (
-    <View style={styles.adContainer} ref={adContainerRef}>
-      {vastConfigUrl && !adComplete && (
-        <WebView ref={webRef} style={styles.webView}
+    <View style={styles.fullSizeCover} ref={adContainerRef}>
+      {showWebView && (
+        <WebView ref={webRef} style={styles.fullSizeCover}
                  source={webSource}
                  javaScriptEnabled={true}
                  allowSystemKeyEvents={true}
@@ -113,7 +115,11 @@ export function TruexAd(adProps: TruexAdProps) {
                  onError={onWebViewError}
                  onLoad={onWebViewLoad}
         />
-    )}
+      )}
+      {!showWebView && (
+        // Show a black cover to hide flickers where the underlying main video peeks thru.
+        <View style={styles.fullSizeCover}></View>
+      )}
     </View>
   );
 }
@@ -121,30 +127,25 @@ export function TruexAd(adProps: TruexAdProps) {
 export default TruexAd;
 
 const styles = StyleSheet.create({
-  adContainer: {
+  fullSizeCover: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     margin: 0,
     width: '100%',
     height: '100%',
-    backgroundColor: 'black',
-    display: 'flex',
-    flex: 1
-  },
-  webView: {
-    backgroundColor: 'black',
-    margin: 0,
-    width: '100%',
-    height: '100%'
+    backgroundColor: 'black'
   }
 });
 
 function injectInitialStyles(webView: any, onAdEvent: AdEventHandler) {
   const jsCode = `
 (function() {
-  const html = document.documentElement; 
+  const html = document.documentElement;
   html.style.width = '1920px';
   html.style.height = '1080px';
   html.style.backgroundColor = 'black';
-  
+
   const body = document.body;
   body.style.backgroundColor = 'black';
   body.style.width = '100%';
@@ -159,35 +160,35 @@ function injectAdParameters(webView: any, { vastConfigUrl, options }: TruexAdPro
   const appId = options?.appId || DeviceInfo.getBundleId();
   //const debugWebView = options?.enableWebViewDebugging /* || config.buildEnv != 'prod' */ || false;
   const debugWebView = true;
-  const jsCode = `    
+  const jsCode = `
 function postTarMessage(type, data) {
   setTimeout(() => window.ReactNativeWebView?.postMessage(JSON.stringify({ type, data })), 0);
 }
 
 try {
   postTarMessage('log', 'constructing hostApp');
-  
+
   // TAR Web Bridge expects a hostApp functional interface:
   const hostApp = {
     signalAdEvent(eventJSONString) {
       postTarMessage('signalAdEvent', eventJSONString);
     },
-    
+
     getAdParametersJSON() {
       const params = {};
 
       function addParam(name, value) {
         if (value) params[name] = value;
       }
-      
+
       addParam('vastConfigUrl', ${JSON.stringify(vastConfigUrl)});
       addParam('userAdvertisingId', ${JSON.stringify(userId)});
       addParam('appId', ${JSON.stringify(appId)});
       addParam('useIntegration', {name: "TAR Kepler", version: "0.0.1"});
       return JSON.stringify(params);
-    }      
+    }
   };
-  
+
   // Forward console logs to the host.
   if (${debugWebView}) {
     (function() {
@@ -197,7 +198,7 @@ try {
         warn: console.warn.bind(console),
         error: console.error.bind(console)
       };
-  
+
       function logAction(kind) {
           return function(...args) {
               const msg = args.join(' ');
@@ -205,20 +206,20 @@ try {
               postTarMessage(kind, msg);
           };
       }
-  
+
       console.log = logAction('log');
       console.info = logAction('info');
       console.warn = logAction('warn');
       console.error = logAction('error');
     })();
   }
-  
+
   window.hostApp = hostApp;
   if (window.initializeApplication) {
     window.initializeApplication();
   } else {
     postTarMessage('log', 'initializeApplication not present at injection');
-  }    
+  }
 } catch (err) {
   postTarMessage('log', 'injection error: ' + err);
   throw err;

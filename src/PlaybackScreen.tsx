@@ -103,6 +103,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     return true;
   }, [navigation, stopVideo]);
 
+  // TODO: Doesn't seem to work yet.
   const videoStyles = useMemo(() => {
     const display : 'none' | 'flex' = showTruexAd ? 'none' : 'flex';
     const opacity = showTruexAd ? 0 : 1;
@@ -133,7 +134,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     return () => {
       console.log('*** playback page unmounted');
     };
-  }, [video, navigateBack, showVideo]);
+  }, [video, showVideo]);
 
   const onSurfaceViewCreated = (surfaceHandle: string): void => {
     console.log('*** video surface created: ' + surfaceHandle);
@@ -270,7 +271,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
           const hideTruexAd = () => {
             console.log("*** hiding truex");
             setShowTruexAd(false);
-//            pageRef.current?.focus(); // ensure our page has the focus again
           };
           if (hasAdCredit.current && currAdBreak) {
             // Skip over the rest of the ad break, ensuring we don't see
@@ -471,14 +471,14 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     };
     BackHandler.addEventListener('hardwareBackPress', onBackHandler);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackHandler);
-  }, [showTruexAd]);
+  }, [showTruexAd, navigateBack]);
 
   // In a real app we would use custom player controls via VideoPlayer's setMediaControlFocus method.
   // For this app we are intentionally keeping things simple to concentrate on the TruexAd interactions.
   const onHWEvent = useCallback((evt: HWEvent) => {
     if (evt.eventKeyAction !== 0) return; // ignore key up events
-    console.log(`*** key event: ${evt.eventType} showTruexAd: ${showTruexAd}`);
     if (showTruexAd) return; // do not interfere with Truex's own interactive processing.
+    console.log(`*** key event: ${evt.eventType}`);
     switch (evt.eventType) {
       case 'playpause':
       case 'select':
@@ -513,7 +513,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   return (
     <View style={styles.playbackPage} ref={pageRef}>
-      <KeplerVideoSurfaceView style={videoStyles} onSurfaceViewCreated={onSurfaceViewCreated} />
+      <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} />
       {isShowingControls && !showTruexAd && (
         <View style={styles.controlBar}>
           <Image source={isPlaying ? pauseIcon : playIcon} style={styles.playPauseIcon} />
@@ -542,7 +542,12 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         </View>
       )}
       {showTruexAd && (
-        <TruexAd vastConfigUrl={currAdBreak?.vastUrl} options={tarOptions} onAdEvent={onAdEvent} />
+        // <TruexAd style={styles.adContainer} vastConfigUrl={currAdBreak?.vastUrl} options={tarOptions} onAdEvent={onAdEvent} />
+        <View style={styles.adContainer}>
+          <View style={styles.testCover}></View>
+          <TruexAd vastConfigUrl={currAdBreak?.vastUrl} options={tarOptions} onAdEvent={onAdEvent} />
+          {/*<View style={styles.testCover}></View>*/}
+        </View>
       )}
     </View>
   );
@@ -560,13 +565,30 @@ const controlBarH = playSize + 2 * padding;
 
 const styles = StyleSheet.create({
   playbackPage: {
+    margin: 0,
     width: '100%',
     height: '100%',
-    backgroundColor: '#606060',
-    alignItems: 'stretch'
+    backgroundColor: '#606060'
+  },
+  adContainer: {
+    top: 0,
+    left: 0,
+    position: 'absolute',
+    margin: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#229922'
+  },
+  testCover: {
+    top: 0,
+    left: 0,
+    position: 'absolute',
+    margin: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#999922'
   },
   videoView: {
-    zIndex: 0,
     top: 0,
     left: 0,
     position: 'absolute',
