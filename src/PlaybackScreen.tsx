@@ -269,7 +269,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
           play();
 
           const hideTruexAd = () => {
-            // finalize the truex completion in the next render pass.
             setShowTruexAd(false);
           };
 
