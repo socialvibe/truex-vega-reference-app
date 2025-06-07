@@ -138,7 +138,7 @@ function injectInitialStyles(webView: any, onAdEvent: AdEventHandler) {
 function injectAdParameters(webView: any, { vastConfigUrl, options }: TruexAdProps, onAdEvent: AdEventHandler) {
   const userId = options?.userAdvertisingId || DeviceInfo.getInstanceIdSync();
   const appId = options?.appId || DeviceInfo.getBundleId();
-  //const debugWebView = options?.enableWebViewDebugging /* || config.buildEnv != 'prod' */ || false;
+  //const debugWebView = options?.enableWebViewDebugging /* || config.buildEnv != 'prod' */ || false; // TODO
   const debugWebView = true;
   const jsCode = `
 function postTarMessage(type, data) {
