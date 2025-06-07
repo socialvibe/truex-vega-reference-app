@@ -1,14 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { StyleSheet } from 'react-native';
 import DeviceInfo from '@amzn/react-native-device-info';
-import {
-  AdEventData,
-  AdEventHandler,
-  isCompletionEvent,
-  signalAdError,
-  signalAdEvent,
-  TruexAdEvent
-} from './TruexAdEvent';
+import { AdEventData, AdEventHandler, signalAdError, signalAdEvent, TruexAdEvent } from './TruexAdEvent';
 import { WebView } from '@amzn/webview';
 import { TruexAdOptions } from './TruexAdOptions';
 import {
