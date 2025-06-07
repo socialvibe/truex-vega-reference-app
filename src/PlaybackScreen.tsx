@@ -227,7 +227,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
   );
 
   const seekTo = useCallback(
-    (newTime: number, afterSeek?: () => void, seekNow: boolean = false) => {
+    (newTime: number, afterSeek?: () => void) => {
       const newTarget = Math.max(0, Math.min(newTime, video.duration));
       if (newTarget == video.currentTime) {
         debugVideoPosition("seekTo ignored", newTarget, adPlaylist);
