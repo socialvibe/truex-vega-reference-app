@@ -114,10 +114,6 @@ export function TruexAd(adProps: TruexAdProps) {
                  onError={onWebViewError}
                  onLoad={onWebViewLoad}
         />
-      {!showWebView && (
-        // Show a black cover to hide flickers where the underlying main video peeks thru.
-        <View style={styles.fullSizeCover}></View>
-      )}
     </View>
   );
 }
