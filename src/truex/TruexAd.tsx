@@ -29,7 +29,6 @@ export function TruexAd(adProps: TruexAdProps) {
     const qaUrl = "https://ctv.truex.com/android/bridge/v2/qa/index.html";
     const isProduction = vastConfigUrl ? vastConfigUrl.indexOf(".truex.com") >= 0 && vastConfigUrl.indexOf("qa-") < 0 : false;
     const url = isProduction ? prodUrl : qaUrl;
-    //const url = "https://qa-media.truex.com/container/3.x/current/ctv.html#creative_json_url=https%3A%2F%2Fqa-ee.truex.com%2Fstudio%2Fdrafts%2F5179%2Fconfig_json&session_id=100cfe41-7638-4e32-9383-4f0a1e6eebde&multivariate%5Bctv_footer_test%5D=T0&multivariate%5Bctv_relevance_enabled%5D=true";
     return { uri: url }
   }, []);
 
