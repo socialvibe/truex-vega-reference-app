@@ -15,6 +15,7 @@
     "build": "run-s update-version compile",
     "rebuild": "run-s clean build",
     "build:release": "npm run build && react-native build-kepler --build-type Release",
+    "build:release": "npm run build && react-native build-kepler --build-type Release",
     "build:debug": "npm run build && react-native build-kepler --build-type Debug",
 
     "kepler-simulator-debug": "kepler run-kepler build/vega-tv2023-aarch64-debug/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
@@ -34,9 +35,6 @@
     "kepler-start-app": "kepler device launch-app",
     "kepler-stop-app": "kepler device terminate-app",
     "kepler-restart-app": "run-s kepler-stop-app kepler-start-app"
-  },
-  "old-deps": {
-    "@amzn/keplerscript-react-native-reanimated": "~2.0.0"
   },
   "dependencies": {
     "@amzn/react-native-device-info": "~2.0.0",
