@@ -28,9 +28,8 @@ import pauseIcon from './assets/pause.png';
 import playIcon from './assets/play.png';
 
 import videoStreamJson from './data/video-stream.json';
-import { TruexAdOptions } from './truex/TruexAdOptions';
-import { AdEventHandler, TruexAdEvent } from './truex/TruexAdEvent';
-import TruexAd from './truex/TruexAd';
+
+import { AdEventHandler, TruexAd, TruexAdEvent, TruexAdOptions } from "@truex/ad-renderer-kepler";
 import { PlayerControlsBlocker } from './PlayerControlsBlocker';
 
 const videoStream = videoStreamJson as VideoStreamConfig;

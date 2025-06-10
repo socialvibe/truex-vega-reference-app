@@ -7,16 +7,16 @@
   "scripts": {
     "clean": "rm -rf buildinfo.json dist build",
     "start": "npx react-native start",
-    "update-version": "sed -e 's/^version =.*$/version = \"'$npm_package_version'\"/' -i '' manifest.toml",
+
     "lint": "eslint src --ext .ts,.tsx",
-    "compile": "tsc -p tsconfig.json",
     "link-tar": "npm link @truex/ad-renderer-kepler",
 
+    "update-version": "sed -e 's/^version =.*$/version = \"'$npm_package_version'\"/' -i '' manifest.toml",
+    "compile": "tsc -p tsconfig.json",
     "build": "run-s update-version compile",
     "rebuild": "run-s clean build",
-    "build:release": "npm run build && react-native build-kepler --build-type Release",
-    "build:release": "npm run build && react-native build-kepler --build-type Release",
-    "build:debug": "npm run build && react-native build-kepler --build-type Debug",
+    "build:release": "run-s clean build && react-native build-kepler --build-type Release",
+    "build:debug": "run-s clean build && react-native build-kepler --build-type Debug",
 
     "kepler-simulator-debug": "kepler run-kepler build/vega-tv2023-aarch64-debug/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
     "kepler-simulator-release": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
@@ -48,7 +48,6 @@
     "@amzn/react-navigation__native": "~7.0.0",
     "@amzn/react-navigation__routers": "~7.0.0",
     "@amzn/react-navigation__stack": "~7.0.0",
-    "@amzn/webview": "file:webview-3.2.0_0.19.tgz",
     "react": "18.2.0",
     "react-native": "0.72.0",
     "react-native-uuid": ">=2.0.1"
