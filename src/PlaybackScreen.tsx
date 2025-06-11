@@ -102,19 +102,6 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     return true;
   }, [navigation, stopVideo]);
 
-  // TODO: Doesn't seem to work yet.
-  const videoStyles = useMemo(() => {
-    const display : 'none' | 'flex' = showTruexAd ? 'none' : 'flex';
-    const opacity = showTruexAd ? 0 : 1;
-    return {
-      ...styles.videoView,
-      // Hide the video when showing Truex, to avoid the "flicker" interference of the main video
-      // flashing briefly in the truex ad videos.
-      display,
-      opacity
-    };
-  }, [showTruexAd]);
-
   useEffect(() => {
     console.log('*** playback page mounted');
 
