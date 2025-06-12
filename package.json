@@ -48,7 +48,7 @@
     "@amzn/react-navigation__native": "~7.0.0",
     "@amzn/react-navigation__routers": "~7.0.0",
     "@amzn/react-navigation__stack": "~7.0.0",
-    "@truex/ad-renderer-kepler": "file:truex-ad-renderer-kepler-0.3.7.tgz",
+    "@truex/ad-renderer-kepler": "file:truex-ad-renderer-kepler-0.3.8.tgz",
     "@amzn/webview": "file:webview-3.2.0_0.19.tgz",
     "react": "18.2.0",
     "react-native": "0.72.0",
