@@ -73,6 +73,10 @@ export function getAdBreaks(adBreakConfigs: AdBreakConfig[]): AdBreak[] {
     totalAdsDuration += adBreak.duration;
   });
 
+  adBreaks.forEach(adBreak => {
+    console.log(`*** ad break: ${adBreak.id} at ${timeDebug(adBreak.startTime, adBreaks)}`);
+  });
+
   return adBreaks;
 }
 
@@ -105,15 +109,20 @@ export function getNextAdBreak(streamTime: number, adPlaylist: AdBreak[]): AdBre
 }
 
 // We assume ad videos are stitched into the main video.
-export function getVideoContentTimeAt(streamTime: number, adPlaylist: AdBreak[]): number {
+export function getVideoContentTimeAt(streamTime: number, adPlaylist: AdBreak[], currAdBreak?: AdBreak): number {
   let result = streamTime;
   if (adPlaylist) {
     for (const index in adPlaylist) {
       const adBreak = adPlaylist[index];
       if (streamTime < adBreak.startTime) break; // future ads don't affect things
       if (adBreak.startTime <= streamTime && streamTime <= adBreak.endTime) {
-        // We are within the ad, show the ad time.
-        return streamTime - adBreak.startTime;
+        if (currAdBreak == adBreak) {
+          // We want to show time within the ad break.
+          return streamTime - adBreak.startTime;
+        } else {
+          // We want to show the content time at the ad break.
+          return adBreak.contentTime;
+        }
 
       } else if (adBreak.endTime <= streamTime) {
         // Discount the ad duration.
@@ -158,7 +167,7 @@ export function pad(value: number): string {
   return value < 10 ? '0' + value : value.toString();
 }
 
-export function timeDebug(streamTime: number, adPlaylist: AdBreak[]) {
-  const contentTime = getVideoContentTimeAt(streamTime, adPlaylist);
+export function timeDebug(streamTime: number, adPlaylist: AdBreak[], currAdBreak? : AdBreak) {
+  const contentTime = getVideoContentTimeAt(streamTime, adPlaylist, currAdBreak);
   return `${timeLabel(contentTime)} [${timeLabel(streamTime)}]`;
 }

@@ -7,14 +7,33 @@ schema-version = 1
 
 [package]
 title = "Basic UI React Native Application"
-version = "0.1.0"
+version = "0.3.0"
 id = "com.truex.keplerrefapp"
 
 [components]
 [[components.interactive]]
 id = "com.truex.keplerrefapp.main"
+categories = ["com.amazon.category.main", "com.amazon.category.kepler.media"]
 runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
 launch-type = "singleton"
+
+[[extras]]
+key = "interface.provider"
+component-id = "com.truex.keplerrefapp.main"
+
+[extras.value.application]
+[[extras.value.application.interface]]
+interface_name = "com.amazon.kepler.media.IMediaPlaybackServer"
+command_options = [
+    "SkipForward",
+    "SkipBackward"
+]
+#attribute_options = ["AudioAdvanceMuted", <insert any other attribute options supported>]
+#features = ["AdvancedSeek", "VariableSpeed", "AudioTracks", "TextTracks", <insert other features supported>]
+
+[wants]
+[[wants.service]]
+id = "com.amazon.inputmethod.service"
 
 # For rendering web content
 [[wants.service]]
@@ -22,14 +41,49 @@ id = "com.amazon.webview.renderer_service"
 
 # For video playback
 [[wants.service]]
-id = "com.amazon.mediametrics.service" # Required for metrics service
-[[wants.service]]
 id = "com.amazon.media.server"
+
+[[wants.service]]
+id = "com.amazon.mediabuffer.service"
+
+[[wants.service]]
+id = "com.amazon.mediatransform.service"
+
+[[wants.service]]
+id = "com.amazon.mediametrics.service"
+
+#Required for remote button events.
+[[wants.service]]
+id = "com.amazon.inputd.service"
+
+#Required to connect to MediaControls
 [[wants.service]]
 id = "com.amazon.media.playersession.service"
 
-# For audio playback
+#Required for GIPC SR
+[[wants.service]]
+id = "com.amazon.gipc.uuid.*"
+
+#Required for using the audio stream
 [[wants.service]]
 id = "com.amazon.audio.stream"
+
+#Required for using Volume and Other controls
 [[wants.service]]
 id = "com.amazon.audio.control"
+
+#Required for using Volume and Other controls
+[[wants.service]]
+id = "com.amazon.audio.system"
+
+# To enable accessibility support for your app,
+# it's highly recommended you add UCC service with SR
+[[wants.service]]
+id = "com.amazon.kepler.ucc.publisher"
+
+#Required for GIPC SR
+[[offers.service]]
+id = "com.amazon.gipc.uuid.*"
+
+#[[needs.module]]
+#id = "/com.amazon.kepler.webview@IWebView"
