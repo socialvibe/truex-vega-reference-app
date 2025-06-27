@@ -106,7 +106,8 @@ const styles = StyleSheet.create({
     margin: 0,
     width: '100%',
     height: '100%',
-    backgroundColor: 'black'
+    backgroundColor: 'black',
+    zIndex: 100 // explore work around to "video flash thru" bug
   }
 });
 

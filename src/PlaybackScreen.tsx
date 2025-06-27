@@ -566,7 +566,8 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
     width: '100%',
-    height: '100%'
+    height: '100%',
+    zIndex: 0 // explore work around to "video flash thru" bug
   },
   adLabel: {
     color: 'white',
