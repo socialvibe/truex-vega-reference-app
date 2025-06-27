@@ -9,13 +9,13 @@
       "breakId": "preroll",
       "contentTime": "00:00:00",
       "duration": 92,
-      "vastUrl": "https://qa-get.truex.com/c39e2b60633fcda48cbbc60b9628af64cf23ff9d/vast/config?dimension_1=PI-2447-C3-ctv-ad"
+      "vastUrl": "https://qa-get.truex.com/c39e2b60633fcda48cbbc60b9628af64cf23ff9d/vast/config?dimension_1=PI-2447-C3-ctv-ad&ip=68.201.71.132"
     },
     {
       "breakId": "midroll-1",
       "contentTime": "00:08:05",
       "duration": 92,
-      "vastUrl": "https://qa-get.truex.com/15c7f5269a09bd8c5007ba98263571dd80c458e5/vast/config?dimension_2=0&dimension_5=hilton&stream_position=preroll&stream_id=1234"
+      "vastUrl": "https://qa-get.truex.com/15c7f5269a09bd8c5007ba98263571dd80c458e5/vast/config?dimension_2=0&dimension_5=hilton&stream_position=preroll&stream_id=1234&ip=68.201.71.132"
     }
   ]
 }
