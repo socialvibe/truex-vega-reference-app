@@ -6,7 +6,7 @@
 schema-version = 1
 
 [package]
-title = "Basic UI React Native Application"
+title = "Kepler Reference App"
 version = "0.3.0"
 id = "com.truex.keplerrefapp"
 
