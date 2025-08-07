@@ -18,6 +18,7 @@
     "build:release": "run-s clean build && react-native build-kepler --build-type Release",
     "build:debug": "run-s clean build && react-native build-kepler --build-type Debug",
 
+    "TBD": "these simulator commands need to be updated, build paths have changed, etc.",
     "kepler-simulator-debug": "kepler run-kepler build/vega-tv2023-aarch64-debug/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
     "kepler-simulator-release": "kepler run-kepler build/vega-tv2023-aarch64-release/truexkeplerrefapp_aarch64.vpkg com.truex.keplerrefapp.main -s",
     "kepler-simulator-start": "kepler device simulator start",
@@ -48,8 +49,8 @@
     "@amzn/react-navigation__native": "~7.0.0",
     "@amzn/react-navigation__routers": "~7.0.0",
     "@amzn/react-navigation__stack": "~7.0.0",
-    "@truex/ad-renderer-kepler": "file:truex-ad-renderer-kepler-0.3.8.tgz",
-    "@amzn/webview": "file:webview-3.2.0_0.19.tgz",
+    "@truex/ad-renderer-kepler": "file:truex-ad-renderer-kepler-0.3.12.tgz",
+    "@amzn/webview": "file:webview_3.3.0_0.20.1.tgz",
     "react": "18.2.0",
     "react-native": "0.72.0",
     "react-native-uuid": ">=2.0.1"
