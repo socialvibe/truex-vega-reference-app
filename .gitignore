@@ -7,6 +7,7 @@
 
 dist
 build
+out
 node_modules
 buildinfo.json
 CMakeUserPresets.json
