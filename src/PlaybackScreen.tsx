@@ -1,16 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import uuid from 'react-native-uuid';
-import { StackScreenProps } from '@amzn/react-navigation__stack';
-
-import { KeplerVideoSurfaceView, VideoPlayer } from '@amzn/react-native-w3cmedia';
+import { StackScreenProps } from '@amazon-devices/react-navigation__stack';
+import { KeplerVideoSurfaceView, VideoPlayer } from '@amazon-devices/react-native-w3cmedia';
 import {
   BackHandler,
   HWEvent,
   Image,
   useComponentInstance,
   useTVEventHandler
-} from '@amzn/react-native-kepler';
+} from '@amazon-devices/react-native-kepler';
 
 import {
   AdBreak,
@@ -29,7 +28,7 @@ import playIcon from './assets/play.png';
 
 import videoStreamJson from './data/video-stream.json';
 
-import { AdEventHandler, TruexAd, TruexAdEvent, TruexAdOptions } from "@truex/ad-renderer-kepler";
+import { TruexAdEventHandler, TruexAd, TruexAdOptions, TruexAdEventType } from "@truex/ad-renderer-vega";
 import { PlayerControlsBlocker } from './PlayerControlsBlocker';
 
 const videoStream = videoStreamJson as VideoStreamConfig;
@@ -65,16 +64,15 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   const tarOptions = useMemo<TruexAdOptions>(() => {
     const options: TruexAdOptions = {
-      // Ensure a unique user id to minimize no ads available
-      userAdvertisingId: uuid.v4() as string
+      // TESTING ONLY: provide a unique user id to minimize no ads available
+      // In production version this parameter should not be provided.
+      userAdvertisingId: uuid.v4(),
     };
     return options;
   }, []);
 
   const hasAdCredit = useRef(false);
-
   const controlsDisplayTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>();
-
   const componentInstance = useComponentInstance();
 
   const showVideo = useCallback(() => {
@@ -86,7 +84,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
     video.setSurfaceHandle(surfaceRef.current);
     setCanPlayVideo(true);
-  }, [video]);
+  }, [ video,  ]);
 
   const stopVideo = useCallback(() => {
     video.pause();
@@ -190,26 +188,26 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   const currContentTime = useMemo(
     () => getVideoContentTimeAt(currStreamTime, adPlaylist),
-    [currStreamTime, adPlaylist]
+    [ currStreamTime, adPlaylist ]
   );
   const contentDuration = useMemo(
     () => getVideoContentTimeAt(video.duration, adPlaylist),
-    [video.duration, adPlaylist]
+    [ video.duration, adPlaylist ]
   );
 
   const currStreamDisplayTime = useMemo(() => {
     return getVideoContentTimeAt(currStreamTime, adPlaylist, currAdBreak);
-  }, [currStreamTime, adPlaylist, currAdBreak]);
+  }, [ currStreamTime, adPlaylist, currAdBreak ]);
 
   const currStreamOrSeekDisplayTime = useMemo(() => {
     // Show the seek target instead of the playback time if it is active.
     const streamTimeToShow = seekTarget >= 0 ? seekTarget : currStreamTime;
     return getVideoContentTimeAt(streamTimeToShow, adPlaylist, currAdBreak);
-  }, [seekTarget, currStreamTime, adPlaylist, currAdBreak]);
+  }, [ seekTarget, currStreamTime, adPlaylist, currAdBreak ]);
 
   const currDisplayDuration = useMemo(
     () => (currAdBreak ? currAdBreak.duration : contentDuration),
-    [currAdBreak, contentDuration]
+    [ currAdBreak, contentDuration ]
   );
 
   const seekTo = useCallback(
@@ -224,14 +222,14 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
         afterSeekAction.current = afterSeek;
       }
     },
-    [video, adPlaylist]
+    [ video, adPlaylist ]
   );
 
   // Normally we perform the actual seek in the next rendering pass, so as to allow the control bar UX
   // to update first.
   useEffect(() => {
     if (seekTarget >= 0) video.currentTime = seekTarget;
-  }, [seekTarget]);
+  }, [ seekTarget ]);
 
   const onSeekCompleted = useCallback(() => {
     const action = afterSeekAction.current;
@@ -239,18 +237,18 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
     afterSeekAction.current = undefined;
   }, []);
 
-  const onAdEvent: AdEventHandler = useCallback<AdEventHandler>(
-    (event, data) => {
+  const onAdEvent = useCallback<TruexAdEventHandler>(
+    (event) => {
       console.log(`*** truex event: ${event}`);
-      switch (event) {
-        case TruexAdEvent.AdFreePod:
+      switch (event.type) {
+        case TruexAdEventType.AD_FREE_POD:
           // Remember for later that we have the ad credit.
           hasAdCredit.current = true;
           break;
 
-        case TruexAdEvent.AdCompleted:
-        case TruexAdEvent.AdError:
-        case TruexAdEvent.NoAdsAvailable:
+        case TruexAdEventType.AD_COMPLETED:
+        case TruexAdEventType.AD_ERROR:
+        case TruexAdEventType.NO_ADS_AVAILABLE:
           // Resume playback.
           play();
 
@@ -267,7 +265,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
           }
           break;
       }
-    }, [seekTo, play, currAdBreak]);
+    }, [ seekTo, play, currAdBreak ]);
 
   useEffect(() => {
     // Show controls initially.
@@ -495,6 +493,7 @@ export function PlaybackScreen({ navigation, route }: StackScreenProps<any>) {
 
   return (
     <View style={styles.playbackPage} ref={pageRef}>
+      {/* {!showTruexAd && (<KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} />)} */}
       <KeplerVideoSurfaceView style={styles.videoView} onSurfaceViewCreated={onSurfaceViewCreated} />
       {isShowingControls && !showTruexAd && (
         <View style={styles.controlBar}>
@@ -663,21 +662,22 @@ interface AdBreakMarkerProps {
 
 function AdBreakMarker({ contentTime, duration }: AdBreakMarkerProps) {
   const layout = useMemo(
-    () => [styles.adBreak, { left: timelineWidth(contentTime, duration) }],
-    [contentTime, duration]
+    () => [ styles.adBreak, { left: timelineWidth(contentTime, duration) } ],
+    [ contentTime, duration ]
   );
   return <View style={layout} />;
 }
 
 function debugVideoPosition(context: string, streamTime: number, adPlaylist: AdBreak[], currAdBreak?: AdBreak) {
-  if (debugVideoTime) {
-    const streamTimeLabel = timeDebug(streamTime, adPlaylist, currAdBreak);
-    let msg = `*** ${context}: ${streamTimeLabel}`;
-    if (currAdBreak) {
-      const adState = currAdBreak.completed ? 'completed' : currAdBreak.started ? 'started' : 'todo';
-      msg += ` in ad ${currAdBreak.id} (${adState})`;
-    }
-    console.log(msg);
+  if (debugVideoTime !== true) return;
+
+  const streamTimeLabel = timeDebug(streamTime, adPlaylist, currAdBreak);
+  let msg = `*** ${context}: ${streamTimeLabel}`;
+
+  if (currAdBreak) {
+    const adState = currAdBreak.completed ? 'completed' : currAdBreak.started ? 'started' : 'todo';
+    msg += ` in ad ${currAdBreak.id} (${adState})`;
   }
 
+  console.log(msg);
 }
