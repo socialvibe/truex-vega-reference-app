@@ -110,7 +110,6 @@ export function CSAIPlaybackScreenB({
         <TruexAd
           adParameters={parseAdParametersAsJson(playbackContext.currentAd.adParameters)}
           onAdEvent={handleAdEvent}
-          options={{}}
         />
       )}
     </View>

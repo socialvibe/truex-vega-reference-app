@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-interface AdBadgeProps {
+export type AdBadgeProps = {
   adIndex: number;
   countdown: number;
-}
+};
 
 export function AdBadge({ adIndex, countdown }: AdBadgeProps) {
   return (

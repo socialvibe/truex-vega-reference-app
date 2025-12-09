@@ -5,9 +5,7 @@ import { createStackNavigator } from '@amazon-devices/react-navigation__stack';
 import { HomeScreen } from './screens/HomeScreen';
 import { ScreenParamsList, Screens } from './ScreenTypes';
 import { loadExampleConfigurations } from './ExampleData';
-import { TestPlaybackScreen } from './screens/TestPlaybackScreen';
 import { CSAIPlaybackScreenA } from './screens/CSAIPlaybackScreenA';
-import { CSAIPlaybackScreenB } from './screens/CSAIPlaybackScreenB';
 
 const Stack = createStackNavigator<ScreenParamsList>();
 const examples = loadExampleConfigurations();
@@ -24,15 +22,7 @@ export const App = () => {
         />
         <Stack.Screen
           name={Screens.CSAI_PLAYBACK_SCREEN}
-          component={TestPlaybackScreen}
-        />
-        <Stack.Screen
-          name={Screens.CSAI_PLAYBACK_SCREEN_A}
           component={CSAIPlaybackScreenA}
-        />
-        <Stack.Screen
-          name={Screens.CSAI_PLAYBACK_SCREEN_B}
-          component={CSAIPlaybackScreenB}
         />
       </Stack.Navigator>
     </NavigationContainer>

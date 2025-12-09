@@ -1,10 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { formatTime } from '../csai/utils';
 
-interface ProgressBarProps {
-  currentTime: number;
-  duration: number;
+/**
+ * Format time in seconds to MM:SS format
+ */
+export function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
 export function ProgressBar({ currentTime, duration }: ProgressBarProps) {
@@ -50,3 +53,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
 });
+
+export type ProgressBarProps = {
+  currentTime: number;
+  duration: number;
+};
