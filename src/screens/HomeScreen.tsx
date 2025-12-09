@@ -1,16 +1,20 @@
+import React, { useCallback, useEffect } from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
-import { Image } from '@amzn/react-native-kepler';
-import React, { useEffect } from 'react';
-import { AppButton } from './ui/AppButton';
-import { StackScreenProps } from '@amzn/react-navigation__stack';
+import { Image } from '@amazon-devices/react-native-kepler';
+import { AppButton } from '../ui/AppButton';
+import { StackScreenProps } from '@amazon-devices/react-navigation__stack';
+import { ScreenParamsList, Screens } from '../ScreenTypes';
 
-import background from './assets/background.png';
-import logo from './assets/truex-vision-logo.png';
+import background from '../assets/background.png';
+import logo from '../assets/truex-vision-logo.png';
 
-export function HomeScreen({ navigation, route }: StackScreenProps<any>) {
+export function HomeScreen({ navigation, route }: StackScreenProps<ScreenParamsList, Screens.DEFAULT_SCREEN>) {
   function repeatRender(count: number, callback: (index: number) => React.ReactNode) {
     return Array(count).fill(null).map((value, index) => callback(index));
   }
+  const examples = route.params.examples;
+
+  console.log(` ----- truex -- contentList: ${JSON.stringify(examples)}`);
 
   useEffect(() => {
     console.log('*** home page mounted');
@@ -18,6 +22,7 @@ export function HomeScreen({ navigation, route }: StackScreenProps<any>) {
       console.log('*** home page unmounted');
     };
   }, []);
+
 
   return (
     <ImageBackground source={background} style={styles.background}>
@@ -35,10 +40,20 @@ export function HomeScreen({ navigation, route }: StackScreenProps<any>) {
           </Text>
         </View>
         <AppButton
-          onPress={() => navigation.navigate('Playback')}
-          label={'Play'}
+          onPress={() => navigation.navigate(Screens.CSAI_PLAYBACK_SCREEN_A, { content: examples?.[0] } )}
+          label={'Play (Hook Pattern)'}
           style={styles.playButtonRow}
           hasTVPreferredFocus={true}
+        />
+        <AppButton
+          onPress={() => navigation.navigate(Screens.CSAI_PLAYBACK_SCREEN_B, { content: examples?.[0] } )}
+          label={'Play (ViewModel Pattern)'}
+          style={styles.playButtonRow}
+        />
+        <AppButton
+          onPress={() => navigation.navigate(Screens.CSAI_PLAYBACK_SCREEN, { content: examples?.[0] } )}
+          label={'Play (Test Screen)'}
+          style={styles.playButtonRow}
         />
         <View style={styles.movieTray}>
           <View style={[styles.tile, styles.selectedTile]}>
@@ -110,5 +125,3 @@ const styles = StyleSheet.create({
     marginLeft: 0
   }
 });
-
-export default HomeScreen;

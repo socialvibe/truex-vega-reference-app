@@ -1,5 +1,5 @@
-import { KeplerMediaControlHandler } from '@amzn/react-native-w3cmedia';
-import { IMediaSessionId, ITimeValue } from '@amzn/kepler-media-controls';
+import { KeplerMediaControlHandler } from '@amazon-devices/react-native-w3cmedia';
+import { IMediaSessionId, ITimeValue } from '@amazon-devices/kepler-media-controls';
 
 /**
  * Provides a control handler that blocks all play/pause/seek user actions to the player.
