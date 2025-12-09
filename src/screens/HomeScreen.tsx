@@ -40,17 +40,6 @@ export function HomeScreen({ navigation, route }: StackScreenProps<ScreenParamsL
           </Text>
         </View>
         <AppButton
-          onPress={() => navigation.navigate(Screens.CSAI_PLAYBACK_SCREEN_A, { content: examples?.[0] } )}
-          label={'Play (Hook Pattern)'}
-          style={styles.playButtonRow}
-          hasTVPreferredFocus={true}
-        />
-        <AppButton
-          onPress={() => navigation.navigate(Screens.CSAI_PLAYBACK_SCREEN_B, { content: examples?.[0] } )}
-          label={'Play (ViewModel Pattern)'}
-          style={styles.playButtonRow}
-        />
-        <AppButton
           onPress={() => navigation.navigate(Screens.CSAI_PLAYBACK_SCREEN, { content: examples?.[0] } )}
           label={'Play (Test Screen)'}
           style={styles.playButtonRow}
