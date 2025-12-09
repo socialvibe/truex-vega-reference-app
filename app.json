@@ -1,5 +1,5 @@
 {
   "//": "The declared app name must follow this pattern to be KRL-compatible",
-  "name": "com.truex.keplerrefapp.main",
+  "name": "com.truex.vega.referenceapp.main",
   "displayName": "TruexKeplerRefApp"
 }

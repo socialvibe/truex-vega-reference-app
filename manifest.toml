@@ -12,14 +12,14 @@ id = "com.truex.keplerrefapp"
 
 [components]
 [[components.interactive]]
-id = "com.truex.keplerrefapp.main"
+id = "com.truex.vega.referenceapp.main"
 categories = ["com.amazon.category.main", "com.amazon.category.kepler.media"]
 runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
 launch-type = "singleton"
 
 [[extras]]
 key = "interface.provider"
-component-id = "com.truex.keplerrefapp.main"
+component-id = "com.truex.vega.referenceapp.main"
 
 [extras.value.application]
 [[extras.value.application.interface]]
